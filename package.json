@@ -1,0 +1,12 @@
+{
+  "name": "asterflow",
+  "module": "routing/index.ts",
+  "type": "module",
+  "workspaces": ["core", "packages/*"],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
