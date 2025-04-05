@@ -5,11 +5,13 @@
   "type": "module",
   "devDependencies": {
     "@types/bun": "latest",
-    "router": "workspace:../packages/router"
+    "router": "workspace:../packages/router",
+    "driver": "workspace:../packages/driver"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "fastify": "^5.2.2"
   }
 }
