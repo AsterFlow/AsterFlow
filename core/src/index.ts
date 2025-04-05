@@ -1,6 +1,9 @@
 import { z } from 'zod'
 import { AsterFlow } from './controllers/asterflow'
-import { Router } from 'router'
+import { Method, Router } from 'router'
+import { drivers, Runtime } from 'driver'
+import fastify from 'fastify'
+
 type Responders<TData = unknown> = {
   200: {
     asdasd: string,
@@ -16,24 +19,25 @@ const router = new Router({
     })
   },
   methods: {
-    get({ reply, schema }) {
-      return reply.code(200).send({
+    get({ response, schema, request }) {
+      request.method
+      return response.code(200).send({
         message: 'Hello'
       })
     }
   }
 })
 
-const aster = new AsterFlow<Responders>()
-  .router({
-    basePath: '/v1',
-    controllers: [router]
-  })
-  .controller(router)
+const method = new Method({
+  method: 'get',
+  path: '/',
+  handle: ({ response }) => {
+    return response.json({})
+  }
+})
 
-await aster.listen({ port: 3008 })
+const aster = new AsterFlow({ driver: drivers. })
+aster.listen({ port: 4000 })
 
 type ListRouters<T> = T extends AsterFlow<any, infer Routers> ? Routers : never
 type Routes = ListRouters<typeof aster>
-
-console.log(aster)
