@@ -1,6 +1,6 @@
-import type { FastifyRequest } from 'fastify'
 import type { z, ZodTypeAny } from 'zod'
 import type { Response } from '../controllers/response'
+import type { AsterRequest } from '../controllers/Request'
 /*
  * Enum for HTTP method types.
  */
@@ -13,7 +13,6 @@ export enum MethodType {
 }
 
 export type MethodKeys = keyof typeof MethodType
-
 export type Responders = { [x in number]: unknown }
 export type SchemaDynamic<M extends MethodKeys> = { [K in M]?: ZodTypeAny }
 
@@ -29,10 +28,10 @@ export type RouteHandler<
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
   > = (args: {
-  request: FastifyRequest
+  request: AsterRequest
   response: Response<Responder>;
   schema: ZodInferredData<Method, Schema>;
-}) => Response
+}) => Promise<Response> | Response
 
 export type RouterOptions<
   Path extends string,

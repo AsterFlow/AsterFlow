@@ -1,12 +1,13 @@
 import { type ZodTypeAny } from "zod"
 import type { MethodHandler, MethodOptions } from "../types/method"
-import type { MethodKeys } from "../types/router"
+import type { MethodKeys, Responders } from "../types/router"
 
 export class Method<
-  Path extends string,
-  Method extends MethodKeys,
-  Schema extends ZodTypeAny,
-  Handler extends MethodHandler<Schema>
+  Responder extends Responders,
+  const Path extends string = string,
+  const Method extends MethodKeys = MethodKeys,
+  const Schema extends ZodTypeAny = ZodTypeAny,
+  const Handler extends MethodHandler<Responder, Schema> = MethodHandler<Responder, Schema>
 >{
   path: Path
   method: Method
@@ -16,7 +17,7 @@ export class Method<
   use: [] = []
   handler: Handler
 
-  constructor (options: MethodOptions<Path, Method, Schema, Handler>) {
+  constructor (options: MethodOptions<Responder, Path, Method, Schema, Handler>) {
     this.path = options.path
     this.method = options.method
     this.schema = options.schema

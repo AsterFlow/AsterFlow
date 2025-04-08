@@ -1,19 +1,25 @@
 import type { z, ZodTypeAny } from "zod";
-import type { MethodKeys } from "./router";
+import type { MethodKeys, Responders } from "./router";
 import type { Response } from "../controllers/response";
+import type { FastifyRequest } from "fastify";
+import type { AsterRequest } from "../controllers/Request";
 
-export type MethodHandler<Schema extends ZodTypeAny>= (args: {
-  response: Response;
-  // request: FastifyRequest
+export type MethodHandler<
+  Responder extends Responders,
+  Schema extends ZodTypeAny
+> =(args: {
+  response: Response<Responder>;
+  request: AsterRequest
   schema: z.infer<Schema>
-}) => Response
+}) => Promise<Response<Responder>> | Response<Responder>
 
 export type MethodOptions<
+  Responder extends Responders,
   Path extends string,
   Method extends MethodKeys,
   Schema extends ZodTypeAny,
-  Handler extends MethodHandler<Schema>
-  > = {
+  Handler extends MethodHandler<Responder, Schema>,
+> = {
   path: Path,
   name?: string,
   method: Method,

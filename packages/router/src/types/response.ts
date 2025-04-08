@@ -1,10 +1,17 @@
+import type { Responders } from "./router"
+
+export type BodyMap<Responder extends Responders> = {
+  [S in keyof Responder]: Responder[S]
+}
+
 export type ResponseOptions<
-  Data extends unknown,
-  Status extends number,
+  Responder extends Responders,
+  BM extends BodyMap<Responder>,
+  Status extends keyof BM ,
   Header extends Map<string, string>,
   Cookies extends Map<string, string>
 > = {
-  data?: Data
+  data?: BM[Status]
   code?: Status
   header?: Header
   cookies?: Cookies

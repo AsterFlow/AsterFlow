@@ -1,42 +1,41 @@
-import { z } from 'zod'
-import { AsterFlow } from './controllers/asterflow'
-import { Method, Router } from 'router'
-import { drivers, Runtime } from 'driver'
+import { drivers } from 'driver'
 import fastify from 'fastify'
+import { Method } from 'router'
+import { AsterFlow } from './controllers/Asterflow'
+import { createServer } from 'http'
 
-type Responders<TData = unknown> = {
+type Res<TData = unknown> = {
   200: {
+    gasd: string
+  },
+  404: {
     asdasd: string,
     data: TData
   }
 }
 
-const router = new Router({
-  path: '/create',
-  schema: {
-    get: z.object({
-      test: z.string()
-    })
-  },
-  methods: {
-    get({ response, schema, request }) {
-      request.method
-      return response.code(200).send({
-        message: 'Hello'
-      })
-    }
-  }
-})
+const aster = new AsterFlow({ driver: drivers.express })
+const server = fastify()
 
 const method = new Method({
   method: 'get',
-  path: '/',
-  handle: ({ response }) => {
-    return response.json({})
+  path: '//teste',
+  handle:({ response, request }) => {
+    return response.notFound({
+      asdasd: '',
+      data: ''
+    })
   }
 })
 
-const aster = new AsterFlow({ driver: drivers. })
+const out = aster
+  .controller(method)
+  .router({
+    basePath: '/v1/',
+    controllers: [method]
+  })
+const data = out.routers.get('/teste')
+
 aster.listen({ port: 4000 })
 
 type ListRouters<T> = T extends AsterFlow<any, infer Routers> ? Routers : never

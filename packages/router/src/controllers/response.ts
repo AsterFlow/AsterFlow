@@ -1,158 +1,203 @@
-import type { ResponseOptions } from "../types/response";
+import type { BodyMap, ResponseOptions } from "../types/response"
+import type { Responders } from "../types/router"
 
-type BodyInit = ReadableStream | Bun.XMLHttpRequestBodyInit | URLSearchParams | AsyncGenerator<Uint8Array>;
-
-
+type BodyInit =
+  | ReadableStream
+  | Bun.XMLHttpRequestBodyInit
+  | URLSearchParams
+  | AsyncGenerator<Uint8Array>
 export class Response<
-  Data = unknown,
+  Responder extends Responders = Responders,
+  BM extends BodyMap<Responder> = BodyMap<Responder>,
+  Status extends keyof BM = keyof BM,
   Header extends Map<string, string> = Map<string, string>,
   Cookies extends Map<string, string> = Map<string, string>,
-  Status extends number = 200,
 > {
-  protected readonly coder: Status;
-  protected readonly data?: Data;
-  readonly header: Header;
-  protected readonly cookies: Cookies;
+  protected readonly _status: Status
+  readonly body?: BM[Status]
+  readonly header: Header
+  readonly cookies: Cookies
 
-  constructor(options?: ResponseOptions<Data, Status, Header, Cookies>) {
-    this.coder = options?.code ?? (200 as Status);
-    this.data = options?.data;
-    this.header = options?.header ?? (new Map() as Header);
-    this.cookies = options?.cookies ?? (new Map() as Cookies);
+  constructor(options?: ResponseOptions<
+    Responder,
+    BM,
+    Status,
+    Header,
+    Cookies
+  >) {
+    this._status = options?.code ?? (200 as Status)
+    this.body = options?.data
+    this.header = options?.header ?? (new Map() as Header)
+    this.cookies = options?.cookies ?? (new Map() as Cookies)
   }
 
+  // Overload 1: não se altera o status (usa o status atual)
   protected clone<
-    NewData = Data,
-    NewCookies extends Map<string, string> = Cookies,
-    NewHeader extends Map<string, string> = Header
-  >(overrides: {
-    data?: NewData;
-    header?: NewHeader;
-    cookies?: NewCookies;
-  }): Response<NewData, NewHeader, NewCookies, Status>;
-  
-  protected clone<
-    NewData,
-    NewStatus extends number,
+    NewHeader extends Map<string, string> = Header,
     NewCookies extends Map<string, string> = Cookies
   >(overrides: {
-    code: NewStatus;
-    data?: NewData;
-    header?: Header;
-    cookies?: NewCookies;
-  }): Response<NewData, Header, NewCookies, NewStatus>;
+    data?: BM[Status]
+    header?: NewHeader
+    cookies?: NewCookies
+  }): Response<Responder, BM, Status, NewHeader, NewCookies>
+
+  // Overload 2: altera o status (o novo status é fornecido via `code`)
+  protected clone<
+    NewStatus extends keyof BM,
+    NewCookies extends Map<string, string> = Cookies
+  >(overrides: {
+    code: NewStatus
+    data?: BM[NewStatus]
+    header?: Header
+    cookies?: NewCookies
+  }): Response<Responder, BM, NewStatus, Header, NewCookies>
 
   protected clone(overrides: {
-    code?: number;
-    data?: any;
-    header?: Header;
-    cookies?: Map<string, string>;
-  }): Response<any, Header, any, number> {
-    return new Response({
-      code: overrides.code !== undefined ? overrides.code : this.coder,
-      data: overrides.data !== undefined ? overrides.data : this.data,
+    code?: keyof BM
+    data?: BM[keyof BM]
+    header?: Map<string, string>
+    cookies?: Map<string, string>
+  }): Response<Responder, BM, keyof BM, Map<string, string>, Map<string, string>> {
+    return new Response<Responder, BM, keyof BM, Map<string, string>, Map<string, string>>({
+      code: overrides.code !== undefined ? overrides.code : this._status,
+      data: overrides.data !== undefined ? overrides.data : this.body,
       header: overrides.header !== undefined ? overrides.header : this.header,
       cookies: overrides.cookies !== undefined ? overrides.cookies : this.cookies,
-    });
+    })
   }
 
-  status<S extends number>(code: S): Response<Data, Header, Cookies, S> {
-    return this.clone({ code });
-  }
-  code<S extends number>(code: S): Response<Data, Header, Cookies, S> {
-    return this.status(code);
+
+  status<NS extends keyof BM>(code: NS) { return this.clone({ code }) }
+  getStatus() { return this._status }
+  code<NS extends keyof BM>(code: NS) { return this.status(code) }
+
+  send(data: BM[Status]) { return this.clone({ data }) }
+  json(data: BM[Status]) {
+    const newHeader = new Map(this.header) as Header & Map<"Content-Type", "application/json">
+    newHeader.set("Content-Type", "application/json")
+    return this.clone({ data, header: newHeader })
   }
 
-  send<D>(data: D): Response<D, Header, Cookies, Status> {
-    return this.clone({ data });
-  }
-  json<D>(data: D): Response<D, Header & Map<'Content-Type', 'application/json'>, Cookies, Status> {
-    const newHeader = new Map(this.header) as Header & Map<'Content-Type', 'application/json'>;
-    newHeader.set('Content-Type', 'application/json');
-    return this.clone({ data, header: newHeader });
-  }
-
-  success<const D>(data: D): Response<D, Header, Cookies, 200> {
-    return this.clone({ code: 200, data });
-  }
-
-  created<D>(data: D): Response<D, Header, Cookies, 201> {
-    return this.clone({ code: 201, data });
-  }
-
-  noContent<D>(data: D): Response<D, Header, Cookies, 204> {
-    return this.clone({ code: 204, data });
-  }
-
-  badRequest<D>(data: D): Response<D, Header, Cookies, 400> {
-    return this.clone({ code: 400, data });
-  }
-
-  unauthorized<D>(data: D): Response<D, Header, Cookies, 401> {
-    return this.clone({ code: 401, data });
-  }
-
-  forbidden<D>(data: D): Response<D, Header, Cookies, 403> {
-    return this.clone({ code: 403, data });
-  }
-
-  notFound<D>(data: D): Response<D, Header, Cookies, 404> {
-    return this.clone({ code: 404, data });
-  }
+  // helpers fixos usam BM[200], BM[201], BM[204], etc.
+  success(data: BM[200]) { return this.clone({ code: 200, data }) }
+  created(data: BM[201]) { return this.clone({ code: 201, data }) }
+  noContent(data: BM[204]) { return this.clone({ code: 204, data }) }
+  badRequest(data: BM[400]) { return this.clone({ code: 400, data }) }
+  unauthorized(data: BM[401]) { return this.clone({ code: 401, data }) }
+  forbidden(data: BM[403]) { return this.clone({ code: 403, data }) }
+  notFound(data: BM[404]) { return this.clone({ code: 404, data }) }
 
   setCookie<Name extends string, Value extends string>(
     name: Name,
     value: Value
-  ): Response<Data, Header, Cookies & Map<Name, Value>, Status> {
-    const newCookies = new Map(this.cookies) as Cookies & Map<Name, Value>;
-    newCookies.set(name, value);
-    return this.clone({ cookies: newCookies });
+  ): Response<Responder, BM, Status, Header, Cookies & Map<Name, Value>> {
+    const newCookies = new Map(this.cookies) as Cookies & Map<Name, Value>
+    newCookies.set(name, value)
+    return this.clone({ cookies: newCookies })
   }
 
   setHeader<Name extends string, Value extends string>(
     name: Name,
     value: Value
-  ): Response<Data, Header & Map<Name, Value>, Cookies, Status> {
-    const newHeader = new Map(this.header) as Header & Map<Name, Value>;
-    newHeader.set(name, value);
-    return this.clone({ header: newHeader });
+  ): Response<Responder, BM, Status, Header & Map<Name, Value>, Cookies> {
+    const newHeader = new Map(this.header) as Header & Map<Name, Value>
+    newHeader.set(name, value)
+    return this.clone({ header: newHeader })
   }
 
-    /**
-   * Converte esta instância na Response nativa do Fetch API.
-   */
-    public toResponse(): globalThis.Response {
-      // 1) Constrói um objeto Headers a partir do Map
-      const headers = new Headers();
-      for (const [key, value] of this.header) {
-        headers.set(key, value);
-      }
+  public toResponse(): globalThis.Response {
+    const headers = new Headers()
   
-      // 2) Adiciona cookies como cabeçalhos 'Set-Cookie'
-      for (const [name, value] of this.cookies) {
-        headers.append('Set-Cookie', `${name}=${value}`);
-      }
-  
-      // 3) Serializa o corpo
-      const contentType = headers.get('Content-Type');
-      let body: BodyInit | null = null;
-      if (this.data != null) {
-        if (contentType === 'application/json') {
-          body = JSON.stringify(this.data);
-        } else {
-          body = String(this.data);
-        }
-      }
-  
-      // 4) Retorna a Response nativa
-      return new globalThis.Response(body, {
-        status: this.coder,
-        headers,
-      });
+    // Copia os cabeçalhos definidos
+    for (const [k, v] of this.header) {
+      headers.set(k, v)
     }
+  
+    // Se nenhum Content-Type foi definido, configura com base no tipo dos dados
+    if (!headers.has("Content-Type")
+        && this.body !== undefined
+        && typeof this.body === "object"
+      ) {
+      headers.set("Content-Type", "application/json")
+    } else {
+      headers.set("Content-Type", "text/plain")
+    }
+
+    // Configura os cookies
+    for (const [n, v] of this.cookies) {
+      headers.append("Set-Cookie", `${n}=${v}`)
+    }
+  
+    // Define o corpo da resposta conforme o Content-Type
+    let body: BodyInit | null = null
+    if (this.body !== undefined) {
+      if (headers.get("Content-Type") === "application/json") {
+        body = JSON.stringify(this.body)
+      } else {
+        body = String(this.body)
+      }
+    }
+  
+    return new globalThis.Response(body, {
+      status: this._status as number,
+      headers,
+    })
+  }
+  
 }
 
-const response = new Response()
-  .json({ message: 'Operação realizada com sucesso' });
+import { ServerResponse } from 'http';
 
-console.log(response.header.get('Content-Type'))
+export function toServerResponse(
+  customResponse: Response<any, any, any, any, any>,
+  res: ServerResponse
+): void {
+  // Set status code
+  res.statusCode = customResponse.getStatus() as number;
+
+  const setCookies: string[] = [];
+
+  // Process headers from header Map
+  for (const [key, value] of customResponse.header) {
+    if (key.toLowerCase() === 'set-cookie') {
+      setCookies.push(value);
+    } else {
+      res.setHeader(key, value);
+    }
+  }
+
+  // Add cookies from cookies Map
+  for (const [name, value] of customResponse.cookies) {
+    setCookies.push(`${name}=${value}`);
+  }
+
+  // Set combined cookies
+  if (setCookies.length > 0) {
+    res.setHeader('Set-Cookie', setCookies);
+  }
+
+  // Determine Content-Type if not set
+  if (!res.hasHeader('Content-Type')) {
+    if (customResponse.body !== undefined && typeof customResponse.body === 'object') {
+      res.setHeader('Content-Type', 'application/json');
+    } else {
+      res.setHeader('Content-Type', 'text/plain');
+    }
+  }
+
+  // Send response body
+  if (customResponse.body !== undefined) {
+    const contentType = res.getHeader('Content-Type');
+    let body: string;
+
+    if (typeof contentType === 'string' && contentType.includes('application/json')) {
+      body = JSON.stringify(customResponse.body);
+    } else {
+      body = String(customResponse.body);
+    }
+
+    res.end(body);
+  } else {
+    res.end();
+  }
+}
