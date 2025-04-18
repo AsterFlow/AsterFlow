@@ -3,15 +3,20 @@
   "version": "1.0.0",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "dev": "bun run --inspect=ws://localhost:6499 src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
+    "driver": "workspace:../packages/driver",
     "router": "workspace:../packages/router",
-    "driver": "workspace:../packages/driver"
+    "zod": "^3.24.3"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
+    "@caeljs/config": "^0.9.6",
     "fastify": "^5.2.2"
   }
 }

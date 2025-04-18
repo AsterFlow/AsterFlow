@@ -1,9 +1,7 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { Response } from "router"
 import { Driver } from "../controllers/Driver"
 import { Runtime } from "../types/driver"
-
-type HeadersInit = string[][] | Record<string, string | ReadonlyArray<string>> | Headers
 
 export default new Driver({
   runtime: Runtime.Fastify,

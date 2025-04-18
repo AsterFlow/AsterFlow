@@ -2,45 +2,45 @@ import type { FastifyRequest } from "fastify";
 import { IncomingMessage } from 'http';
 import { TLSSocket } from "tls";
 import { URL } from 'url';
+import type { AsterRequestTypes } from "../types/method";
 
-export type AsterRequestTypes = FastifyRequest | Request | IncomingMessage;
 
-export class AsterRequest {
-  request: AsterRequestTypes;
+export class AsterRequest<Requester extends AsterRequestTypes>{
+  private request: Requester;
 
-  constructor(request: AsterRequestTypes) {
+  constructor(request: Requester) {
     this.request = request;
   }
 
   async getBody(): Promise<unknown> {
-    if (this.isFastifyRequest()) {
-      return this.#handleFastifyBody();
-    } else if (this.isFetchRequest()) {
-      return this.#handleFetchBody();
-    } else if (this.isIncomingMessage()) {
-      return this.#handleNodeBody();
+    switch (true) {
+      case this.isFastifyRequest(): return this.#handleFastifyBody()
+      case this.isFetchRequest(): return this.#handleFetchBody()
+      case this.isIncomingMessage(): return this.#handleNodeBody()
+
+      default: throw new Error('Unsupported request type')
     }
-    throw new Error('Unsupported request type');
   }
 
   getParams(): Record<string, string> {
     if (this.isFastifyRequest()) {
-      return (this.request as FastifyRequest).params ?? {} as Record<string, string>;
+      return (this.request as FastifyRequest).params ?? Object.create({})
     }
     return this.#getQueryParams();
   }
   
 
   getURL(): string {
-    if (this.isFetchRequest()) {
-      return (this.request as Request).url;
+    switch (true) {
+      case this.isFetchRequest(): {
+        return (this.request as Request).url
+      }
+      case this.isIncomingMessage(): {
+        return this.#getFullURL(this.request as IncomingMessage)
+      }
+
+      default: return this.#getFastifyURL(this.request as FastifyRequest);
     }
-    
-    if (this.isIncomingMessage()) {
-      return this.#getFullURL(this.request as IncomingMessage);
-    }
-    
-    return this.#getFastifyURL(this.request as FastifyRequest);
   }
 
   getId(): string | undefined {
@@ -52,7 +52,7 @@ export class AsterRequest {
 
   getQuery(): Record<string, string> {
     if (this.isFastifyRequest()) {
-      return (this.request as FastifyRequest).query ?? {} as Record<string, string>;
+      return this.request.query ?? Object.create({})
     }
     return this.#getQueryParams();
   }
@@ -129,8 +129,8 @@ export class AsterRequest {
     return this.request instanceof IncomingMessage;
   }
 
-  private isFastifyRequest(): boolean {
-    return 'router' in this.request;
+  private isFastifyRequest(): this is AsterRequest<FastifyRequest> {
+    return 'raw' in this.request;
   }
 
   private isFetchRequest(): boolean {

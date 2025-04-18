@@ -40,7 +40,7 @@ export type OptionsDriver<
   listen: Type extends Runtime.Fastify
     ? (fastify: FastifyInstance, params: ListenParams<Type>) => FastifyInstance
     : Type extends Runtime.Express
-    ?  (express: Express, params: ExpressListenParameters) => Express
+    ?  (express: Express, ...params: ExpressListenParameters) => Express
     : (params: ListenParams<Type>) => Server<typeof IncomingMessage, typeof ServerResponse> | Deno.HttpServer<Deno.NetAddr> | Bun.Server
-  onRequest?: ((request: AsterRequestTypes, response: ResponseCustom) => ResponseCustom) | undefined
+  onRequest?: ((request: AsterRequestTypes, response: ResponseCustom) => ResponseCustom | Promise<ResponseCustom>) | undefined
 }

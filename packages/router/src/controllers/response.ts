@@ -1,11 +1,7 @@
 import type { BodyMap, ResponseOptions } from "../types/response"
 import type { Responders } from "../types/router"
+import { ServerResponse } from 'http'
 
-type BodyInit =
-  | ReadableStream
-  | Bun.XMLHttpRequestBodyInit
-  | URLSearchParams
-  | AsyncGenerator<Uint8Array>
 export class Response<
   Responder extends Responders = Responders,
   BM extends BodyMap<Responder> = BodyMap<Responder>,
@@ -66,19 +62,27 @@ export class Response<
     })
   }
 
+  // --- Core Methods ---
+  status<NS extends keyof BM>(code: NS) {
+    return this.clone({ code })
+  }
+  getStatus() {
+    return this._status
+  }
+  code<NS extends keyof BM>(code: NS) {
+    return this.status(code)
+  }
 
-  status<NS extends keyof BM>(code: NS) { return this.clone({ code }) }
-  getStatus() { return this._status }
-  code<NS extends keyof BM>(code: NS) { return this.status(code) }
-
-  send(data: BM[Status]) { return this.clone({ data }) }
+  send(data: BM[Status]) {
+    return this.clone({ data })
+  }
   json(data: BM[Status]) {
     const newHeader = new Map(this.header) as Header & Map<"Content-Type", "application/json">
     newHeader.set("Content-Type", "application/json")
     return this.clone({ data, header: newHeader })
   }
 
-  // helpers fixos usam BM[200], BM[201], BM[204], etc.
+  // --- Response Helpers ---
   success(data: BM[200]) { return this.clone({ code: 200, data }) }
   created(data: BM[201]) { return this.clone({ code: 201, data }) }
   noContent(data: BM[204]) { return this.clone({ code: 204, data }) }
@@ -86,15 +90,6 @@ export class Response<
   unauthorized(data: BM[401]) { return this.clone({ code: 401, data }) }
   forbidden(data: BM[403]) { return this.clone({ code: 403, data }) }
   notFound(data: BM[404]) { return this.clone({ code: 404, data }) }
-
-  setCookie<Name extends string, Value extends string>(
-    name: Name,
-    value: Value
-  ): Response<Responder, BM, Status, Header, Cookies & Map<Name, Value>> {
-    const newCookies = new Map(this.cookies) as Cookies & Map<Name, Value>
-    newCookies.set(name, value)
-    return this.clone({ cookies: newCookies })
-  }
 
   setHeader<Name extends string, Value extends string>(
     name: Name,
@@ -105,99 +100,58 @@ export class Response<
     return this.clone({ header: newHeader })
   }
 
-  public toResponse(): globalThis.Response {
+  setCookie<Name extends string, Value extends string>(
+    name: Name,
+    value: Value
+  ): Response<Responder, BM, Status, Header, Cookies & Map<Name, Value>> {
+    const newCookies = new Map(this.cookies) as Cookies & Map<Name, Value>
+    newCookies.set(name, value)
+    return this.clone({ cookies: newCookies })
+  }
+
+  toResponse(): globalThis.Response {
     const headers = new Headers()
   
-    // Copia os cabeçalhos definidos
-    for (const [k, v] of this.header) {
-      headers.set(k, v)
-    }
-  
-    // Se nenhum Content-Type foi definido, configura com base no tipo dos dados
-    if (!headers.has("Content-Type")
-        && this.body !== undefined
-        && typeof this.body === "object"
-      ) {
+    // Add headers
+    headers.set("Content-Type", "text/plain")
+    for (const [k, v] of this.header) headers.set(k, v)
+    
+    if (typeof this.body === 'object' || Array.isArray(this.body)) {
       headers.set("Content-Type", "application/json")
-    } else {
-      headers.set("Content-Type", "text/plain")
     }
 
-    // Configura os cookies
-    for (const [n, v] of this.cookies) {
-      headers.append("Set-Cookie", `${n}=${v}`)
-    }
-  
-    // Define o corpo da resposta conforme o Content-Type
-    let body: BodyInit | null = null
-    if (this.body !== undefined) {
-      if (headers.get("Content-Type") === "application/json") {
-        body = JSON.stringify(this.body)
-      } else {
-        body = String(this.body)
-      }
-    }
+    // Add cookies
+    for (const [n, v] of this.cookies) headers.append("Set-Cookie", `${n}=${v}`)
+
+    const body = headers.get("Content-Type") === "application/json"
+      ? JSON.stringify(this.body)
+      : String(this.body)
   
     return new globalThis.Response(body, {
       status: this._status as number,
       headers,
     })
   }
-  
-}
 
-import { ServerResponse } from 'http';
+  toServerResponse(output: ServerResponse): void {
+    const headers = new Headers()
 
-export function toServerResponse(
-  customResponse: Response<any, any, any, any, any>,
-  res: ServerResponse
-): void {
-  // Set status code
-  res.statusCode = customResponse.getStatus() as number;
-
-  const setCookies: string[] = [];
-
-  // Process headers from header Map
-  for (const [key, value] of customResponse.header) {
-    if (key.toLowerCase() === 'set-cookie') {
-      setCookies.push(value);
-    } else {
-      res.setHeader(key, value);
-    }
-  }
-
-  // Add cookies from cookies Map
-  for (const [name, value] of customResponse.cookies) {
-    setCookies.push(`${name}=${value}`);
-  }
-
-  // Set combined cookies
-  if (setCookies.length > 0) {
-    res.setHeader('Set-Cookie', setCookies);
-  }
-
-  // Determine Content-Type if not set
-  if (!res.hasHeader('Content-Type')) {
-    if (customResponse.body !== undefined && typeof customResponse.body === 'object') {
-      res.setHeader('Content-Type', 'application/json');
-    } else {
-      res.setHeader('Content-Type', 'text/plain');
-    }
-  }
-
-  // Send response body
-  if (customResponse.body !== undefined) {
-    const contentType = res.getHeader('Content-Type');
-    let body: string;
-
-    if (typeof contentType === 'string' && contentType.includes('application/json')) {
-      body = JSON.stringify(customResponse.body);
-    } else {
-      body = String(customResponse.body);
+    // Add headers
+    headers.set("Content-Type", "text/plain")
+    for (const [k, v] of this.header) headers.set(k, v)
+    
+    if (typeof this.body === 'object' || Array.isArray(this.body)) {
+      headers.set("Content-Type", "application/json")
     }
 
-    res.end(body);
-  } else {
-    res.end();
+    // Add cookies
+    for (const [n, v] of this.cookies) headers.append("Set-Cookie", `${n}=${v}`)
+
+    const body = headers.get("Content-Type") === "application/json"
+      ? JSON.stringify(this.body)
+      : String(this.body)
+
+    output.writeHead(this._status as number, Object.fromEntries(headers));
+    output.end(body);
   }
 }

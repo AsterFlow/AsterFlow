@@ -1,42 +1,40 @@
-import { drivers } from 'driver'
+import { Driver, drivers } from 'driver'
 import fastify from 'fastify'
 import { Method } from 'router'
 import { AsterFlow } from './controllers/Asterflow'
-import { createServer } from 'http'
+import { z } from 'zod'
+import { c } from '@caeljs/config'
 
 type Res<TData = unknown> = {
   200: {
     gasd: string
   },
   404: {
-    asdasd: string,
     data: TData
   }
 }
 
-const aster = new AsterFlow({ driver: drivers.express })
+const aster = new AsterFlow({ driver: drivers.fastify })
 const server = fastify()
 
 const method = new Method({
   method: 'get',
-  path: '//teste',
-  handle:({ response, request }) => {
+  path: '/teste',
+  schema: c.object({
+      valor: c.string()
+  }),
+  handler: ({ response, request, schema }) => {
     return response.notFound({
-      asdasd: '',
-      data: ''
+      data: "world"
     })
   }
 })
 
-const out = aster
+aster
   .controller(method)
   .router({
     basePath: '/v1/',
     controllers: [method]
   })
-const data = out.routers.get('/teste')
 
-aster.listen({ port: 4000 })
-
-type ListRouters<T> = T extends AsterFlow<any, infer Routers> ? Routers : never
-type Routes = ListRouters<typeof aster>
+aster.listen(server, { port: 2000 })

@@ -1,8 +1,7 @@
-import { Response, toServerResponse } from "router"
-import { Driver } from "../controllers/Driver"
-import { Runtime } from "../types/driver"
-import { createServer } from 'http'
-type HeadersInit = string[][] | Record<string, string | ReadonlyArray<string>> | Headers;
+import { createServer } from 'http';
+import { Response } from "router";
+import { Driver } from "../controllers/Driver";
+import { Runtime } from "../types/driver";
 
 export default new Driver({
   runtime: Runtime.Node,
@@ -14,7 +13,7 @@ export default new Driver({
         message: `The onRequest() function must be defined before the listen() function.`
       })
 
-      return toServerResponse(await this.onRequest(request, new Response()), response)
+      return (await this.onRequest(request, new Response())).toServerResponse(response)
     }).listen(params)
   },
 })
