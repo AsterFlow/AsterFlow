@@ -6,7 +6,8 @@ import {
   type MethodKeys,
   type Responders,
   type RouteHandler,
-  type SchemaDynamic} from "router";
+  type SchemaDynamic
+} from "router";
 import type { CombinedRoutes, InferPath, Tuple, UnionToIntersection } from "../types/asterflow";
 import { joinPaths } from "../utils/parser";
 
@@ -39,13 +40,13 @@ export class AsterFlow<
 
       switch (true) {
         case (router instanceof Router): {
-          const method = router.methods[asterquest.request.method?.toLowerCase() ?? 'get'] as RouteHandler<Responders, MethodKeys, SchemaDynamic<MethodKeys>> | undefined
+          const method = router.methods[asterquest.getRequest().method?.toLowerCase() ?? 'get'] as RouteHandler<Responders, MethodKeys, SchemaDynamic<MethodKeys>> | undefined
           if (!method) return notFound
   
           return await method({ request: asterquest, response, schema: {} })
         }
         case (router instanceof Method): {
-          const method = router.method === asterquest.request.method?.toLowerCase()
+          const method = router.method === asterquest.getRequest().method?.toLowerCase()
           if (!method) return notFound
 
           const res = await router.handler({ request: asterquest, response, schema: {} })

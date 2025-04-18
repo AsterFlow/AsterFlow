@@ -4,7 +4,6 @@ import { TLSSocket } from "tls";
 import { URL } from 'url';
 import type { AsterRequestTypes } from "../types/method";
 
-
 export class AsterRequest<Requester extends AsterRequestTypes>{
   private request: Requester;
 
@@ -20,6 +19,10 @@ export class AsterRequest<Requester extends AsterRequestTypes>{
 
       default: throw new Error('Unsupported request type')
     }
+  }
+
+  getRequest() {
+    return this.request
   }
 
   getParams(): Record<string, string> {
