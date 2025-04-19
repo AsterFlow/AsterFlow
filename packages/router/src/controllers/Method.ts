@@ -1,7 +1,7 @@
-import type { BaseShapeAbstract, InferType } from "@caeljs/config"
-import type { MethodHandler, MethodOptions } from "../types/method"
-import type { MethodKeys, Responders } from "../types/router"
-import type { ZodTypeAny } from "zod"
+import type { BaseShapeAbstract } from '@caeljs/config'
+import type { ZodTypeAny } from 'zod'
+import type { MethodHandler, MethodOptions } from '../types/method'
+import type { MethodKeys, Responders } from '../types/router'
 
 export class Method<
   Responder extends Responders,

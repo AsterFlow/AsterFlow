@@ -1,4 +1,4 @@
-import type { Responders } from "./router"
+import type { Responders } from './router'
 
 export type BodyMap<Responder extends Responders> = {
   [S in keyof Responder]: Responder[S]

@@ -1,7 +1,7 @@
 import { type Express, type Response as ExResponse, type Request } from 'express'
-import { Response } from "router"
-import { Driver } from "../controllers/Driver"
-import { Runtime } from "../types/driver"
+import { Response } from 'router'
+import { Driver } from '../controllers/Driver'
+import { Runtime } from '../types/driver'
 
 export default new Driver({
   runtime: Runtime.Express,
@@ -10,13 +10,13 @@ export default new Driver({
       if (!this.onRequest) {
         const response = new Response().notFound({
           statusCode: 500,
-          error: "Internal Server Error",
-          message: `The onRequest() function must be defined before the listen() function.`
+          error: 'Internal Server Error',
+          message: 'The onRequest() function must be defined before the listen() function.'
         }).toResponse()
         
         res.status(response.status)
-        .set(Object.fromEntries(response.headers))
-        .send(await response.text())
+          .set(Object.fromEntries(response.headers))
+          .send(await response.text())
         return
       }
       

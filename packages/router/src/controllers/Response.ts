@@ -1,5 +1,5 @@
-import type { BodyMap, ResponseOptions } from "../types/response"
-import type { Responders } from "../types/router"
+import type { BodyMap, ResponseOptions } from '../types/response'
+import type { Responders } from '../types/router'
 import { ServerResponse } from 'http'
 
 export class Response<
@@ -77,8 +77,8 @@ export class Response<
     return this.clone({ data })
   }
   json(data: BM[Status]) {
-    const newHeader = new Map(this.header) as Header & Map<"Content-Type", "application/json">
-    newHeader.set("Content-Type", "application/json")
+    const newHeader = new Map(this.header) as Header & Map<'Content-Type', 'application/json'>
+    newHeader.set('Content-Type', 'application/json')
     return this.clone({ data, header: newHeader })
   }
 
@@ -113,17 +113,17 @@ export class Response<
     const headers = new Headers()
   
     // Add headers
-    headers.set("Content-Type", "text/plain")
+    headers.set('Content-Type', 'text/plain')
     for (const [k, v] of this.header) headers.set(k, v)
     
     if (typeof this.body === 'object' || Array.isArray(this.body)) {
-      headers.set("Content-Type", "application/json")
+      headers.set('Content-Type', 'application/json')
     }
 
     // Add cookies
-    for (const [n, v] of this.cookies) headers.append("Set-Cookie", `${n}=${v}`)
+    for (const [n, v] of this.cookies) headers.append('Set-Cookie', `${n}=${v}`)
 
-    const body = headers.get("Content-Type") === "application/json"
+    const body = headers.get('Content-Type') === 'application/json'
       ? JSON.stringify(this.body)
       : String(this.body)
   
@@ -137,21 +137,21 @@ export class Response<
     const headers = new Headers()
 
     // Add headers
-    headers.set("Content-Type", "text/plain")
+    headers.set('Content-Type', 'text/plain')
     for (const [k, v] of this.header) headers.set(k, v)
     
     if (typeof this.body === 'object' || Array.isArray(this.body)) {
-      headers.set("Content-Type", "application/json")
+      headers.set('Content-Type', 'application/json')
     }
 
     // Add cookies
-    for (const [n, v] of this.cookies) headers.append("Set-Cookie", `${n}=${v}`)
+    for (const [n, v] of this.cookies) headers.append('Set-Cookie', `${n}=${v}`)
 
-    const body = headers.get("Content-Type") === "application/json"
+    const body = headers.get('Content-Type') === 'application/json'
       ? JSON.stringify(this.body)
       : String(this.body)
 
-    output.writeHead(this._status as number, Object.fromEntries(headers));
-    output.end(body);
+    output.writeHead(this._status as number, Object.fromEntries(headers))
+    output.end(body)
   }
 }

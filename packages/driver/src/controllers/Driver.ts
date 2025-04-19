@@ -1,4 +1,4 @@
-import { Runtime, type OptionsDriver } from "../types/driver";
+import { Runtime, type OptionsDriver } from '../types/driver'
 import { Response as ResponseCustom, type AsterRequestTypes } from 'router'
 
 export class Driver<

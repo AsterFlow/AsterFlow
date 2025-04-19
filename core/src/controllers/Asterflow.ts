@@ -1,4 +1,4 @@
-import { Driver, type Runtime } from "driver";
+import { Driver, type Runtime } from 'driver'
 import {
   AsterRequest,
   Method,
@@ -7,9 +7,9 @@ import {
   type Responders,
   type RouteHandler,
   type SchemaDynamic
-} from "router";
-import type { CombinedRoutes, InferPath, Tuple, UnionToIntersection } from "../types/asterflow";
-import { joinPaths } from "../utils/parser";
+} from 'router'
+import type { CombinedRoutes, InferPath, Tuple, UnionToIntersection } from '../types/asterflow'
+import { joinPaths } from '../utils/parser'
 
 type RoutersType = Map<string, Router<any, any, any, any, any> | Method<any, any, any, any, any>>
 
@@ -19,7 +19,7 @@ export class AsterFlow<
   Drive extends Driver<Runtime> = Driver<Runtime>,
 > {
   readonly driver: Drive
-  readonly routers: RouterMap = new Map<string, RoutersType>() as RouterMap;
+  readonly routers: RouterMap = new Map<string, RoutersType>() as RouterMap
 
   constructor ({ driver }: { driver: Drive }) {
     this.driver = driver
@@ -34,26 +34,26 @@ export class AsterFlow<
       const router = (this.routers as RoutersType).get(url.pathname)
       const notFound = response.notFound({
         statusCode: 404,
-        code: "NOT_FOUND",
+        code: 'NOT_FOUND',
         message: `Unable to find route: ${request.url}`
       })
 
       switch (true) {
-        case (router instanceof Router): {
-          const method = router.methods[asterquest.getRequest().method?.toLowerCase() ?? 'get'] as RouteHandler<Responders, MethodKeys, SchemaDynamic<MethodKeys>> | undefined
-          if (!method) return notFound
+      case (router instanceof Router): {
+        const method = router.methods[asterquest.getRequest().method?.toLowerCase() ?? 'get'] as RouteHandler<Responders, MethodKeys, SchemaDynamic<MethodKeys>> | undefined
+        if (!method) return notFound
   
-          return await method({ request: asterquest, response, schema: {} })
-        }
-        case (router instanceof Method): {
-          const method = router.method === asterquest.getRequest().method?.toLowerCase()
-          if (!method) return notFound
+        return await method({ request: asterquest, response, schema: {} })
+      }
+      case (router instanceof Method): {
+        const method = router.method === asterquest.getRequest().method?.toLowerCase()
+        if (!method) return notFound
 
-          const res = await router.handler({ request: asterquest, response, schema: {} })
+        const res = await router.handler({ request: asterquest, response, schema: {} })
   
-          return res
-        }
-        default: return notFound
+        return res
+      }
+      default: return notFound
       }
     }
   }

@@ -1,17 +1,17 @@
-import { type Request as ExpressRequest } from 'express';
-import type { FastifyRequest } from "fastify";
-import { IncomingMessage } from 'http';
-import { BaseShapeAbstract, type InferType } from "@caeljs/config";
-import { type ZodTypeAny } from "zod";
-import type { AsterRequest } from "../controllers/Request";
-import type { Response } from "../controllers/response";
-import type { MethodKeys, Responders } from "./router";
+import { BaseShapeAbstract, type InferType } from '@caeljs/config'
+import { type Request as ExpressRequest } from 'express'
+import type { FastifyRequest } from 'fastify'
+import { IncomingMessage } from 'http'
+import { type ZodTypeAny } from 'zod'
+import type { AsterRequest } from '../controllers/Request'
+import type { Response } from '../controllers/Response'
+import type { MethodKeys, Responders } from './router'
 
 export type AsterRequestTypes = FastifyRequest | Request | IncomingMessage | ExpressRequest;
 
 export type MethodHandler<
   Responder extends Responders,
-  Schema extends unknown
+  Schema
 > =(args: {
   response: Response<Responder>;
   request: AsterRequest<AsterRequestTypes>
