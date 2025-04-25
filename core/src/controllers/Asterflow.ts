@@ -1,4 +1,4 @@
-import { Driver, type Runtime } from 'driver'
+import { Driver, type Runtime } from '@asterflow/driver'
 import {
   AsterRequest,
   Method,
@@ -7,7 +7,7 @@ import {
   type Responders,
   type RouteHandler,
   type SchemaDynamic
-} from 'router'
+} from '@asterflow/router'
 import type { CombinedRoutes, InferPath, Tuple, UnionToIntersection } from '../types/asterflow'
 import { joinPaths } from '../utils/parser'
 
@@ -72,7 +72,6 @@ export class AsterFlow<
       Drive
     >
   }
-
 
   controller<Route extends Router<any, any, any, Responder, any> | Method<Responder, any, any, any, any>>(
     router: Route

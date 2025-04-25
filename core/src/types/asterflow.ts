@@ -1,4 +1,4 @@
-import type { Method, Router } from 'router'
+import type { Method, Router } from '@asterflow/router'
 
 export type Tuple<T extends readonly any[]> = readonly [...T];
 

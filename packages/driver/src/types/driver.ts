@@ -1,46 +1,43 @@
+import { Response as ResponseCustom } from '@asterflow/router'
 import type { ServeOptions as BunServeOptions } from 'bun'
-import type { ServeOptions as DenoServeOptions } from 'deno'
-import type { FastifyInstance, FastifyListenOptions } from 'fastify'
-import { IncomingMessage, Server, ServerResponse } from 'http'
+import { type Express, type Request as ExpressRequest } from 'express'
+import type { FastifyInstance, FastifyListenOptions, FastifyRequest } from 'fastify'
+import { IncomingMessage } from 'http'
 import type { ListenOptions } from 'net'
-import { Response as ResponseCustom, type AsterRequestTypes } from 'router'
-import { type Express } from 'express'
+
+type AsterRequestTypes = FastifyRequest | Request | IncomingMessage | ExpressRequest
 
 export enum Runtime {
   Bun = 'bun',
   Express = 'express',
-  Deno = 'deno',
   Node = 'node',
   Fastify = 'fastify',
 }
 
-type ExpressListenParameters =
-  | [port: number, hostname: string, backlog: number, callback?: (error?: Error) => void]
-  | [port: number, hostname: string, callback?: (error?: Error) => void]
-  | [port: number, callback?: (error?: Error) => void]
-  | [callback?: (error?: Error) => void]
-  | [path: string, callback?: (error?: Error) => void]
-  | [handle: any, listeningListener?: (error?: Error) => void];
+export type ExpressListenArgs =
+  | [app: Express, port: number, hostname: string, backlog: number, callback?: (err?: Error) => void]
+  | [app: Express, port: number, hostname: string, callback?: (err?: Error) => void]
+  | [app: Express, port: number, callback?: (err?: Error) => void]
+  | [app: Express, path: string, callback?: (err?: Error) => void]
 
-type ListenParams<Type extends Runtime> =
+export type FastifyListenArgs = [fastify: FastifyInstance, params: FastifyListenOptions, callback: (err: Error | null, address: string) => void]
+export type BunListenArgs = [options: Omit<BunServeOptions, 'fetch'>, callback?: (err: Error | null) => void]
+export type NodeListenArgs = [options: ListenOptions, callback?: (err: Error | null) => void]
+
+export type ListenParams<Type extends Runtime> =
   Type extends Runtime.Bun
-  ? Omit<BunServeOptions, 'fetch'>
-  : Type extends Runtime.Deno
-  ? DenoServeOptions<Deno.NetAddr>
+    ? BunListenArgs
   : Type extends Runtime.Fastify
-  ? FastifyListenOptions
+    ? FastifyListenArgs
   : Type extends Runtime.Express
-  ? ExpressListenParameters
-  : ListenOptions
+    ? ExpressListenArgs
+  : NodeListenArgs
 
-export type OptionsDriver<
-  Type extends Runtime
->= {
+export type OptionsDriver<Type extends Runtime> = {
   runtime: Type
-  listen: Type extends Runtime.Fastify
-    ? (fastify: FastifyInstance, params: ListenParams<Type>) => FastifyInstance
-    : Type extends Runtime.Express
-    ?  (express: Express, ...params: ExpressListenParameters) => Express
-    : (params: ListenParams<Type>) => Server<typeof IncomingMessage, typeof ServerResponse> | Deno.HttpServer<Deno.NetAddr> | Bun.Server
-  onRequest?: ((request: AsterRequestTypes, response: ResponseCustom) => ResponseCustom | Promise<ResponseCustom>) | undefined
+  listen: (...params: ListenParams<Type>) => void
+  onRequest?: (
+    request: AsterRequestTypes,
+    response: ResponseCustom
+  ) => ResponseCustom | Promise<ResponseCustom>
 }

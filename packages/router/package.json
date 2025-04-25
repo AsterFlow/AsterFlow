@@ -1,9 +1,22 @@
 {
-  "name": "router",
+  "name": "@asterflow/router",
   "version": "1.0.0",
-  "module": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/mjs/index.js",
+  "types": "dist/types/index.ts",
+  "typings": "dist/types/index.ts",
   "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.ts",
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "fastify": "^5.2.2",

@@ -23,6 +23,13 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+
+    "baseUrl": ".",
+    "paths": {
+      "@asterflow/router": ["./packages/router/src/index.ts"],
+      "@asterflow/driver": ["./packages/driver/src/index.ts"],
+      "@asterflow/core": ["./core/src/index.ts"],
+    }
   }
 }

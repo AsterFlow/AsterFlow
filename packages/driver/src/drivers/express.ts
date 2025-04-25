@@ -1,5 +1,5 @@
 import { type Express, type Response as ExResponse, type Request } from 'express'
-import { Response } from 'router'
+import { Response } from '@asterflow/router'
 import { Driver } from '../controllers/Driver'
 import { Runtime } from '../types/driver'
 
