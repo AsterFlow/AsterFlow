@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["esnext"],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
@@ -27,9 +27,7 @@
 
     "baseUrl": ".",
     "paths": {
-      "@asterflow/router": ["../packages/router/src/index.ts"],
-      "@asterflow/driver": ["../packages/driver/src/index.ts"],
-      "@asterflow/reminist": ["../packages/reminist/src/index.ts"]
+      "@asterflow/router": ["../router/src/index.ts"]
     }
   }
 }
