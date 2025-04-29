@@ -127,10 +127,7 @@ async function buildPackage(name: string, path: string) {
   console.log(`${CLI} Finished packaging ${name}`)
 }
 
-console.log(`${CLI} Discovering packages in packages/*`)
-const packages = await glob('packages/*')
-packages.push('core')
-console.log(`${CLI} Found packages: ${packages.join(', ')}`)
+const packages = await glob(['packages/*', 'core'])
 
 for (const pkg of packages) {
   const name = pkg.split('/')[1] ?? pkg
