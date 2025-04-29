@@ -1,9 +1,11 @@
-import type { z, ZodTypeAny } from 'zod'
-import type { Response } from '../controllers/Response'
-import type { AsterRequest } from '../controllers/Request'
-import type { AccumulatedMiddlewareOutput, AsterRequestTypes } from './method'
-import type { BaseShapeAbstract } from '@caeljs/config'
 import type { Middleware } from '../controllers/Middleware'
+import type { AsterRequest } from '../controllers/Request'
+import type { Response } from '../controllers/Response'
+import type { AsterRequestTypes } from './method'
+import type { AnySchema, InferSchema, SchemaDynamic } from './schema'
+import type { Method } from '../controllers/Method'
+import type { Router } from '../controllers/Router'
+import type { MiddlewareOutput } from './mindleware'
 /*
  * Enum for HTTP method types.
  */
@@ -12,30 +14,27 @@ export enum MethodType {
   post = 'post',
   put = 'put',
   delete = 'delete',
-  socket = 'socket'
 }
 
 export type MethodKeys = keyof typeof MethodType
 export type Responders = { [x in number]: unknown }
-export type SchemaDynamic<M extends MethodKeys> = { [K in M]?: BaseShapeAbstract<any> | ZodTypeAny }
+export type AnyRouter = Router<any, any, any, any, any, any, any> | Method<any, any, any, any, any, any, any>
 
-export type ZodInferredData<
+export type InferredData<
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
-> = Schema[Method] extends z.ZodTypeAny
-  ? z.infer<Schema[Method]>
-  : unknown
+> = InferSchema<Schema[Method]>
 
 export type RouteHandler<
   Responder extends Responders,
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
-  Middlewares extends readonly Middleware<Responder, ZodTypeAny | BaseShapeAbstract<any>, string, Record<string, unknown>>[],
-  Context extends AccumulatedMiddlewareOutput<Middlewares>,
+  Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
+  Context extends MiddlewareOutput<Middlewares>,
   > = (args: {
   request: AsterRequest<AsterRequestTypes>
   response: Response<Responder>;
-  schema: ZodInferredData<Method, Schema>;
+  schema: InferredData<Method, Schema>;
   middleware: Context
 }) => Promise<Response> | Response
 
@@ -44,8 +43,8 @@ export type RouterOptions<
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
   Responder extends Responders,
-  Middlewares extends readonly Middleware<Responder, ZodTypeAny | BaseShapeAbstract<any>, string, Record<string, unknown>>[],
-  Context extends AccumulatedMiddlewareOutput<Middlewares>,
+  Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
+  Context extends MiddlewareOutput<Middlewares>,
   Routers extends { [Method in MethodKeys]?: RouteHandler<Responder, Method, Schema, Middlewares, Context> },
 > = {
   name?: string
