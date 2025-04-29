@@ -6,19 +6,18 @@
       "dependencies": {
         "@types/express": "^5.0.1",
         "express": "^5.1.0",
+        "memoirist": "^0.3.0",
       },
       "devDependencies": {
-        "@caeljs/config": "^0.9.9",
         "@eslint/js": "^9.25.1",
         "@types/bun": "latest",
         "dts-bundle-generator": "^9.5.1",
         "eslint": "^9.25.1",
         "fastify": "^5.3.2",
-        "glob": "^11.0.1",
+        "glob": "^11.0.2",
         "globals": "^16.0.0",
         "tsup": "^8.4.0",
         "typescript-eslint": "^8.31.0",
-        "zod": "^3.24.3",
       },
       "peerDependencies": {
         "typescript": "^5.8.3",
@@ -28,16 +27,16 @@
       "name": "@asterflow/core",
       "version": "1.0.0",
       "dependencies": {
-        "@caeljs/config": "^0.9.6",
+        "@asterflow/driver": "workspace:../packages/driver",
+        "@asterflow/reminist": "workspace:../packages/reminist",
       },
       "devDependencies": {
-        "@asterflow/driver": "workspace:../packages/driver",
         "@asterflow/router": "workspace:../packages/router",
         "@types/bun": "latest",
         "zod": "^3.24.3",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
     },
     "packages/driver": {
@@ -49,23 +48,37 @@
       },
       "devDependencies": {
         "@asterflow/router": "workspace:../router",
-        "@types/bun": "^1.2.8",
-        "fastify": "^5.2.2",
+        "@types/bun": "^1.2.10",
+        "fastify": "^5.3.2",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
+      },
+    },
+    "packages/reminist": {
+      "name": "@asterflow/reminist",
+      "version": "1.0.0",
+      "dependencies": {
+        "@asterflow/router": "workspace:../router",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5.8.3",
       },
     },
     "packages/router": {
       "name": "@asterflow/router",
       "version": "1.0.0",
       "devDependencies": {
+        "@caeljs/tsh": "^1.1.2",
         "@types/bun": "latest",
-        "fastify": "^5.2.2",
-        "zod": "^3.24.2",
+        "fastify": "^5.3.2",
+        "zod": "^3.24.3",
       },
       "peerDependencies": {
-        "typescript": "^5",
+        "typescript": "^5.8.3",
       },
     },
   },
@@ -77,9 +90,11 @@
 
     "@asterflow/driver": ["@asterflow/driver@workspace:packages/driver"],
 
+    "@asterflow/reminist": ["@asterflow/reminist@workspace:packages/reminist"],
+
     "@asterflow/router": ["@asterflow/router@workspace:packages/router"],
 
-    "@caeljs/config": ["@caeljs/config@0.9.9", "", {}, "sha512-kqwQQjtCbgY/NOVrElrIk/aCc3HlOaJ+FaJXbTa7OmQCoOMpY/nCyfNzB8aVeXELi5RYgsEdm68uSGDWuyoCJg=="],
+    "@caeljs/tsh": ["@caeljs/tsh@1.1.2", "", {}, "sha512-NS3uDJfGI8jwKt7OF3lS0qZHcnfiYv6jaCGSWLorhpq4vo758vlMw4v0PH2acGiR4G1eBX23PyD6EP1/GnwGwg=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.25.2", "", { "os": "aix", "cpu": "ppc64" }, "sha512-wCIboOL2yXZym2cgm6mlA742s9QeJ8DjGVaL39dLN4rRwrOgOyYSnOaFPhKZGLb2ngj4EyfAFjsNJwPXZvseag=="],
 
@@ -453,7 +468,7 @@
 
     "get-proto": ["get-proto@1.0.1", "", { "dependencies": { "dunder-proto": "^1.0.1", "es-object-atoms": "^1.0.0" } }, "sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g=="],
 
-    "glob": ["glob@11.0.1", "", { "dependencies": { "foreground-child": "^3.1.0", "jackspeak": "^4.0.1", "minimatch": "^10.0.0", "minipass": "^7.1.2", "package-json-from-dist": "^1.0.0", "path-scurry": "^2.0.0" }, "bin": { "glob": "dist/esm/bin.mjs" } }, "sha512-zrQDm8XPnYEKawJScsnM0QzobJxlT/kHOOlRTio8IH/GrmxRE5fjllkzdaHclIuNjUQTJYH2xHNIGfdpJkDJUw=="],
+    "glob": ["glob@11.0.2", "", { "dependencies": { "foreground-child": "^3.1.0", "jackspeak": "^4.0.1", "minimatch": "^10.0.0", "minipass": "^7.1.2", "package-json-from-dist": "^1.0.0", "path-scurry": "^2.0.0" }, "bin": { "glob": "dist/esm/bin.mjs" } }, "sha512-YT7U7Vye+t5fZ/QMkBFrTJ7ZQxInIUjwyAjVj84CYXqgBdv30MFUPGnBR6sQaVq6Is15wYJUsnzTuWaGRBhBAQ=="],
 
     "glob-parent": ["glob-parent@6.0.2", "", { "dependencies": { "is-glob": "^4.0.3" } }, "sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A=="],
 
@@ -532,6 +547,8 @@
     "math-intrinsics": ["math-intrinsics@1.1.0", "", {}, "sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g=="],
 
     "media-typer": ["media-typer@1.1.0", "", {}, "sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw=="],
+
+    "memoirist": ["memoirist@0.3.0", "", {}, "sha512-wR+4chMgVPq+T6OOsk40u9Wlpw1Pjx66NMNiYxCQQ4EUJ7jDs3D9kTCeKdBOkvAiqXlHLVJlvYL01PvIJ1MPNg=="],
 
     "merge-descriptors": ["merge-descriptors@2.0.0", "", {}, "sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g=="],
 

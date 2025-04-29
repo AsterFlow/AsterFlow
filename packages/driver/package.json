@@ -27,12 +27,12 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.8",
-    "fastify": "^5.2.2",
+    "@types/bun": "^1.2.10",
+    "fastify": "^5.3.2",
     "@asterflow/router": "workspace:../router"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "@types/express": "^5.0.1",
