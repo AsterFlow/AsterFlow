@@ -15,10 +15,10 @@ export enum Runtime {
 }
 
 export type ExpressListenArgs =
-  | [app: Express, port: number, hostname: string, backlog: number, callback?: (err?: Error) => void]
-  | [app: Express, port: number, hostname: string, callback?: (err?: Error) => void]
-  | [app: Express, port: number, callback?: (err?: Error) => void]
-  | [app: Express, path: string, callback?: (err?: Error) => void]
+  | [port: number, hostname: string, backlog: number, callback?: (err?: Error) => void]
+  | [port: number, hostname: string, callback?: (err?: Error) => void]
+  | [port: number, callback?: (err?: Error) => void]
+  | [path: string, callback?: (err?: Error) => void]
 
 export type FastifyListenArgs = [fastify: FastifyInstance, params: FastifyListenOptions, callback: (err: Error | null, address: string) => void]
 export type BunListenArgs = [options: Omit<BunServeOptions, 'fetch'>, callback?: (err: Error | null) => void]
@@ -30,7 +30,7 @@ export type ListenParams<Type extends Runtime> =
   : Type extends Runtime.Fastify
     ? FastifyListenArgs
   : Type extends Runtime.Express
-    ? ExpressListenArgs
+    ? [app: Express, ExpressListenArgs]
   : NodeListenArgs
 
 export type OptionsDriver<Type extends Runtime> = {
