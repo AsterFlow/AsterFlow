@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // ⇓ Enable .d.ts output
+    "declaration": true,
+    // ⇓ Emit only .d.ts (skip JS) if you’re using a bundler separately
+    "emitDeclarationOnly": true,
+    // ⇓ Where to put the .d.ts files
+    "declarationDir": "dist/types",
+    // ⇓ Actually emit .js instead of noEmit
+    "noEmit": false,
+  },
+  // restrict to your source files
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

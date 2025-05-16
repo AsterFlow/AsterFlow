@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
-  "types": "dist/types/index.ts",
-  "typings": "dist/types/index.ts",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
   "type": "module",
   "license": "MIT",
   "exports": {
     ".": {
-      "types": "./dist/types/index.ts",
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/mjs/index.js",
       "require": "./dist/cjs/index.cjs"
     }
@@ -18,6 +18,7 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@asterflow/request": "workspace:../request",
     "@caeljs/tsh": "^1.1.2",
     "@types/bun": "latest",
     "fastify": "^5.3.2",
@@ -25,5 +26,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@asterflow/url-parser": "workspace:../url-parser"
   }
 }

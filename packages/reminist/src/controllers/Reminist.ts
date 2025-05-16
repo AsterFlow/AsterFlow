@@ -82,22 +82,34 @@ export class Reminist<
    * @param path - Path string in the format '/part1/part2/...'.
    * @returns The node if found and marked as an endpoint; otherwise, undefined.
    */
-  get(key: Keys[number], path: string): Node<Data> | null {
-    if (!this.has(key, path)) return null
-
+  find(key: Keys[number], path: string): Node<Data> | null {
     const parts = this.getParts(path)
     let current = this.getRoot(key)
+    let depth = 0
 
     for (const part of parts) {
-      const prefixCode = part.charCodeAt(0)
-      const child = current.inert.get(prefixCode)
+      depth++
+      const prefixCode = part.charAt(0).charCodeAt(0)
+      const directChild = current.inert.get(prefixCode)
 
-      if (!child || child.name !== part) return null
+      if (directChild && directChild.name === part) {
+        current = directChild
+        continue
+      }
 
-      current = child
+      const paramChild = Array.from(current.inert.values()).find(
+        (n) => n.name.startsWith(':')
+      )
+
+      if (paramChild) {
+        current = paramChild
+      } else {
+        return null
+      }
     }
 
     if (!current.endpoint) return null
+    if (parts.length > depth) return null
 
     return current
   }

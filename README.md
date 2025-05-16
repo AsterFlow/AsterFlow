@@ -20,7 +20,7 @@ AsterFlow is a **modular**, **strongly typed** framework for building HTTP APIs 
 
 ### 📜 History
 
-AsterFlow is a clean rewrite of [base-fastify](https://github.com/Ashu11-A/base-fastify), a project I originally created to improve my own workflow. It evolved substantially as I developed it. The name combines my nickname “Ashu” + “Router” + “Flow” (inspired by TensorFlow). I built it out of frustration with the unnecessary complexity of other frameworks—often you end up writing dozens of type definition files instead of focusing on the routes themselves, with needless modularization that only adds cognitive overhead. AsterFlow simplifies that process, and I hope it makes your life easier too!
+AsterFlow is a clean rewrite of [base-fastify](https://github.com/Ashu11-A/base-fastify), a project I originally created to improve my own workflow. It evolved substantially as I developed it. The name combines my nickname "Ashu" + "Router" + "Flow" (inspired by TensorFlow). I built it out of frustration with the unnecessary complexity of other frameworks—often you end up writing dozens of type definition files instead of focusing on the routes themselves, with needless modularization that only adds cognitive overhead. AsterFlow simplifies that process, and I hope it makes your life easier too!
 
 I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A/Kython), which I developed alongside [Drylian](https://github.com/drylian) as an experiment to see who could go further without using AI.
 
@@ -35,236 +35,256 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A
 
 ## 📦 Packages
 
-| Package               | Description                                                                       |
+| Package | Description |
 | --------------------- | --------------------------------------------------------------------------------- |
-| `@asterflow/driver` | HTTP server implementations and runtime abstractions.                             |
-| `@asterflow/router` | Route definitions, methods, and standardized request/response handling.           |
-| `@asterflow/core`   | Integrates Driver and Router, exposing the primary API for server initialization. |
+| `@asterflow/core` | The heart of the framework, providing server initialization and configuration with strong typing |
+| `@asterflow/adapter` | HTTP adapters for different runtimes (Node.js, Bun, Express, Fastify) |
+| `@asterflow/reminist` | High-performance routing system using prefix tree (trie) |
+| `@asterflow/request` | Unified HTTP request adapter system |
+| `@asterflow/router` | Type-safe routing system with middleware and validation support |
+| `@asterflow/url-parser` | High-performance URL parser with AST support |
 
 ## Installation
 
 ```bash
-# You can use any package manager—npm, pnpm, bun, etc.
-npm install @asterflow/driver @asterflow/router @asterflow/core
+# You can use any package manager - npm, pnpm, bun, etc.
+npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request @asterflow/url-parser
 ```
+
+### ✨ Features
+
+- **HTTP Adapters:** Native support for Node.js, Bun, Express and Fastify through the adapter system
+- **High-Performance Routing:** Optimized routing system using prefix tree
+- **Parameter Validation:** Native support for Zod and @caeljs/config
+- **Advanced URL Analysis:** URL parser with AST support and automatic typing
+- **Middleware System:** Full middleware support with typed context
+- **Standardized Responses:** Unified response system with standard HTTP codes
+- **Modular Architecture:** Decoupled packages for maximum scalability
+- **Dynamic Typing:** Automatic type inference without external files
+- **tRPC-Inspired API:** Fully type-safe route consumption
 
 ## ❓ How to Use
 
-You can define two types of routes: **Method** or **Router**. A Router lets you group multiple HTTP methods (GET, POST, etc.) under a single base path.
+### 🚀 Basic Setup
+
+```typescript
+import { AsterFlow } from '@asterflow/core'
+import { adapters } from '@asterflow/adapter'
+import fastify from 'fastify'
+
+const server = fastify()
+const aster = new AsterFlow({ 
+  driver: adapters.fastify 
+})
+
+aster.listen(server, { port: 3000 })
+```
+
+### 🎯 Basic Routes
 
 <details>
-  <summary>🎯 Method</summary>
+  <summary>Simple Method</summary>
 
 ```ts
-// server/routers/index.get.ts
 import { Method } from '@asterflow/router'
 
 export default new Method({
-  path: '/',
+  path: '/users/:id=number', // Support for typed parameters
   method: 'get',
-  handler: ({ response }) => {
-    return response.status(200).send('hello world')
+  handler: ({ response, url }) => {
+    const { id } = url.getParams() // id is automatically typed as number
+    return response.success({ id })
   }
 })
 ```
-
 </details>
 
 <details>
-  <summary>🖧 Router</summary>
+  <summary>Router with Middleware</summary>
 
 ```ts
-// server/routers/example.ts
-import { Router } from '@asterflow/router'
+import { Router, Middleware } from '@asterflow/router'
 
-new Router({
-  path: '/example',
+const authMiddleware = new Middleware({
+  name: 'auth',
+  onRun({ next }) {
+    return next({
+      user: { id: 1, name: 'John' }
+    })
+  }
+})
+
+export default new Router({
+  path: '/protected',
+  use: [authMiddleware],
   methods: {
-    get({ response }) {
-      return response.success('hello')
-    },
-    post({ response }) {
-      return response.success('world')
+    get({ response, middleware }) {
+      return response.success({ user: middleware.user })
     }
   }
 })
 ```
-
 </details>
 
-### ✅ Validation
+### 🔍 Advanced Validation
 
 <details>
-  <summary>Using CaelJS</summary>
+  <summary>Validation with Zod</summary>
 
 ```ts
-import { c } from '@caeljs/config'
-
-export default new Method({
-  path: '/',
-  method: 'post',
-  schema: c.object({
-    name: c.string()
-  }),
-  handler: ({ response, schema }) => {
-    return response.status(200).send(`hello ${schema.name}`)
-  }
-})
-```
-
-</details>
-
-<details>
-  <summary>Using Zod</summary>
-
-```ts
+import { Method } from '@asterflow/router'
 import { z } from 'zod'
 
 export default new Method({
-  path: '/',
+  path: '/users',
   method: 'post',
   schema: z.object({
-    name: z.string()
+    name: z.string(),
+    email: z.string().email(),
+    age: z.number().min(18)
   }),
   handler: ({ response, schema }) => {
-    return response.status(200).send(`hello ${schema.name}`)
+    return response.created({ user: schema }) // Automatically typed
   }
 })
 ```
-
 </details>
 
-### 📡 Registering Routes
-
-There are two ways of registering a route, the “controller”, where you only register one route, and the “router” where you can register multiple routes at once
-
 <details>
-  <summary>Controller</summary>
+  <summary>Validation with CaelJS</summary>
 
 ```ts
-import { AsterFlow } from '@asterflow/core'
-import method from '../routers/index.get'
-import router from '../routers/example'
+import { Method } from '@asterflow/router'
+import { c } from '@caeljs/config'
 
-const aster = new AsterFlow(/* configuration detailed below */)
-  .controller(router)
+export default new Method({
+  path: '/users',
+  method: 'post',
+  schema: c.object({
+    name: c.string(),
+    email: c.string(),
+    age: c.number().min(18)
+  }),
+  handler: ({ response, schema }) => {
+    return response.created({ user: schema })
+  }
+})
 ```
-
 </details>
 
+### 🌐 HTTP Adapters
+
 <details>
-  <summary>Router</summary>
+  <summary>Express Example</summary>
 
 ```ts
 import { AsterFlow } from '@asterflow/core'
-import method from '../routers/index.get'
-import router from '../routers/example'
-
-const aster = new AsterFlow(/* configuration detailed below */)
-  .router({
-    basePath: '/v1',
-    controllers: [method]
-  })
-```
-
-</details>
-
-### 🏁 Starting the Server
-
-AsterFlow supports Node.js, Bun, Express, and Fastify via the **@asterflow/driver** module. You may also implement your own driver, though that’s beyond this guide.
-
-<details>
-  <summary>Bun</summary>
-
-> Requires Bun as the runtime.
-
-```ts
-import { AsterFlow } from '@asterflow/core'
-import { drivers } from '@asterflow/driver'
-
-const aster = new AsterFlow({ driver: drivers.bun })
-
-/* Register routes */
-
-aster.listen({ port: 3333 })
-```
-
-</details>
-
-<details>
-  <summary>Node.js (native HTTP)</summary>
-
-```ts
-import { AsterFlow } from '@asterflow/core'
-import { drivers } from '@asterflow/driver'
+import { adapters } from '@asterflow/adapter'
 import express from 'express'
 
-const aster = new AsterFlow({ driver: drivers.node })
-
-/* Register routes */
-
-aster.listen({ port: 3333 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening!')
+const app = express()
+const aster = new AsterFlow({ 
+  driver: adapters.express 
 })
-```
 
+// Express middleware
+app.use(express.json())
+
+// AsterFlow routes
+aster.router({
+  basePath: '/api',
+  controllers: [/* your routes */]
+})
+
+aster.listen(app, 3000)
+```
 </details>
 
 <details>
-  <summary>Fastify</summary>
+  <summary>Node.js HTTP Example</summary>
 
 ```ts
 import { AsterFlow } from '@asterflow/core'
-import { drivers } from '@asterflow/driver'
-import fastify from 'fastify'
+import { adapters } from '@asterflow/adapter'
+import { createServer } from 'http'
 
-const server = fastify()
-const aster = new AsterFlow({ driver: drivers.fastify })
-
-/* Register routes */
-
-aster.listen(server, { port: 3333 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening!')
+const server = createServer()
+const aster = new AsterFlow({ 
+  driver: adapters.node 
 })
-```
 
+// AsterFlow routes
+aster.router({
+  basePath: '/api',
+  controllers: [/* your routes */]
+})
+
+aster.listen(server, { port: 3000 })
+```
 </details>
 
 <details>
-  <summary>Express</summary>
+  <summary>Bun Example</summary>
 
 ```ts
 import { AsterFlow } from '@asterflow/core'
-import { drivers } from '@asterflow/driver'
-import express from 'express'
+import { adapters } from '@asterflow/adapter'
 
-const server = express()
-const aster = new AsterFlow({ driver: drivers.express })
-
-/* Register routes */
-
-aster.listen(server, 3333, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening!')
+const aster = new AsterFlow({ 
+  driver: adapters.bun 
 })
+
+// AsterFlow routes
+aster.router({
+  basePath: '/api',
+  controllers: [/* your routes */]
+})
+
+aster.listen(null, { port: 3000 })
+```
+</details>
+
+## 📚 Documentation
+
+### 🔧 Core API Reference
+
+The `@asterflow/core` package provides the following main features:
+
+#### AsterFlow Class
+
+```typescript
+interface AsterFlowOptions<Drive extends Adapter<Runtime>> {
+  driver?: Drive
+}
+
+// Initialize the framework
+const aster = new AsterFlow(options)
 ```
 
-</details>
+**Methods:**
+- `listen(server, options)`: Starts the HTTP server
+- `router({ basePath, controllers })`: Registers multiple routes with a base path
+- `controller(router)`: Registers an individual route
+- `setup()`: Configures the request handler
+
+For more details about each package, check:
+
+- [@asterflow/core](packages/core/README.md) - Core framework functionality
+- [@asterflow/adapter](packages/adapter/README.md) - HTTP adapters for different runtimes
+- [@asterflow/reminist](packages/reminist/README.md) - High-performance routing system
+- [@asterflow/request](packages/request/README.md) - Unified HTTP request system
+- [@asterflow/router](packages/router/README.md) - Type-safe routing system
+- [@asterflow/url-parser](packages/url-parser/README.md) - Advanced URL parser
 
 ## ⭐ Recommendations
 
-If you’re exploring alternatives, you might also like:
+If you're exploring alternatives, you might also like:
 
-- [ElysiaJS](https://elysiajs.com)
-- [tRPC](https://trpc.io/)
+- [ElysiaJS](https://elysiajs.com) - Minimal web framework for Bun
+- [tRPC](https://trpc.io/) - Type-safe RPC framework
+- [Fastify](https://fastify.io/) - Fast and low overhead web framework
+- [Express](https://expressjs.com/) - Minimal web framework for Node.js
+
+## 📄 License
+
+MIT - See [LICENSE](LICENSE) for more details.

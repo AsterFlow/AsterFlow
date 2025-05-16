@@ -1,7 +1,6 @@
 export * from './controllers/Router'
 export * from './controllers/Response'
 export * from './controllers/Middleware'
-export * from './controllers/Request'
 export * from './controllers/Method'
 export * from './types/router'
 export * from './types/schema'

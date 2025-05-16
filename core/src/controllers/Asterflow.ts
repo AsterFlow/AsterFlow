@@ -1,9 +1,9 @@
-import { Driver, drivers, type Runtime } from '@asterflow/driver'
+import { Adapter, adapters, type Runtime } from '@asterflow/adapter'
 import { Reminist } from '@asterflow/reminist'
 import {
-  AsterRequest,
   Method,
   MethodType,
+  Response,
   Router,
   type AnyMiddleware,
   type AnyRouter,
@@ -16,7 +16,7 @@ import {
 import { joinPaths } from '../utils/parser'
 
 type AsterFlowOptions<
-  Drive extends Driver<Runtime> = Driver<Runtime.Node>
+  Drive extends Adapter<Runtime> = Adapter<Runtime.Node>
 >= {
   driver?: Drive
 }
@@ -25,13 +25,13 @@ const byRouter = Reminist.create<AnyRouter>()
 
 export class AsterFlow<
   const Routers extends Reminist<AnyRouter, MethodKeys[]> = Reminist<AnyRouter, MethodKeys[]>,
-  const Drive extends Driver<Runtime> = Driver<Runtime.Node>,
+  const Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
 > {
   readonly driver: Drive
   readonly reminist: Routers
 
   constructor (options: AsterFlowOptions<Drive>) {
-    this.driver = options.driver ?? drivers.node as Drive
+    this.driver = options.driver ?? adapters.node as Drive
     this.reminist = byRouter({
       keys: Object.keys(MethodType) as MethodKeys[]
     }) as Routers
@@ -39,25 +39,24 @@ export class AsterFlow<
   }
 
   private setup () {
-    this.driver.onRequest = async (request, response) => {
-      const asterquest = new AsterRequest(request)
+    this.driver.onRequest = async (request, response = new Response()) => {
       const notFound = response.notFound({
         statusCode: 404,
         code: 'NOT_FOUND',
-        message: `Unable to find route: ${request.url}`
+        message: `Unable to find route: ${request.getPathname()}`
       })
-    
-      const method = asterquest.getRequest().method?.toLowerCase() as MethodType | undefined
+
+      const method = request.getMethod().toLowerCase() as MethodType | undefined
       if (!method) return notFound
-      
-      const url = new URL(asterquest.getURL())
-      const router = this.reminist.get(method, url.pathname)
-      console.log(router)
-      if (!router) return notFound
+
+      const pathname = request.url.getPathname()
+      const router = this.reminist.find(method, pathname)
+      if (!router || !router.store) return notFound
 
       switch (true) {
       case (router.store instanceof Router): {
         const func = router.store.methods[method] as RouteHandler<
+          string,
           Responders,
           MethodKeys,
           SchemaDynamic<MethodKeys>,
@@ -65,10 +64,10 @@ export class AsterFlow<
           MiddlewareOutput<readonly AnyMiddleware[]>> | undefined
         if (!func) return notFound
   
-        return await func({ request: asterquest, response, schema: {}, middleware: {} })
+        return await func({ request, response, url: request.url.withParser(router.store.url), schema: {}, middleware: {} })
       }
       case (router.store instanceof Method): {
-        const res = await router.store.handler({ request: asterquest, response, schema: {}, middleware: {} })
+        const res = await router.store.handler({ request, response, schema: {}, middleware: {} })
   
         return res
       }
@@ -83,13 +82,13 @@ export class AsterFlow<
   >(options: { basePath: BasePath; controllers: Routes }) {
     for (const router of options.controllers) {
       if (router instanceof Method) {
-        this.reminist.add(router.method as MethodKeys, router.path, router)
+        this.reminist.add(router.method as MethodKeys, router.url.getPathname(), router)
         continue
       }
 
       for (const method of Object.keys(router.methods)) {
-        console.log(method, joinPaths(options.basePath, router.path))
-        this.reminist.add(method as MethodKeys, joinPaths(options.basePath, router.path), router)
+        console.log(method, joinPaths(options.basePath, router.url.getPathname()))
+        this.reminist.add(method as MethodKeys, joinPaths(options.basePath, router.url.getPathname()), router)
       }
     }
 
@@ -100,12 +99,12 @@ export class AsterFlow<
     switch (true) {
     case (router instanceof Router): {
       for (const method of Object.keys(router.methods) as MethodType[]) {
-        this.reminist.add(method as MethodKeys, joinPaths('/', router.path), router)
+        this.reminist.add(method as MethodKeys, joinPaths('/', router.url.getPathname()), router)
       }
       break
     }
     case (router instanceof Method): {
-      this.reminist.add(router.method as MethodKeys, joinPaths('/', router.path), router)
+      this.reminist.add(router.method as MethodKeys, joinPaths('/', router.url.getPathname()), router)
       break
     }
     }

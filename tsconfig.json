@@ -28,7 +28,9 @@
     "baseUrl": ".",
     "paths": {
       "@asterflow/router": ["./packages/router/src/index.ts"],
-      "@asterflow/driver": ["./packages/driver/src/index.ts"],
+      "@asterflow/adapter": ["./packages/adapter/src/index.ts"],
+      "@asterflow/url-parser": ["./packages/url-parser/src/index.ts"],
+      "@asterflow/request": ["./packages/request/src/index.ts"],
       "@asterflow/core": ["./core/src/index.ts"],
     }
   }

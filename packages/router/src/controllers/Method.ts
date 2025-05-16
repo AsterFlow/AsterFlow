@@ -1,3 +1,4 @@
+import { Analyze } from '@asterflow/url-parser'
 import type { MethodHandler, MethodOptions } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { MethodKeys, Responders } from '../types/router'
@@ -14,6 +15,7 @@ export class Method<
   const Handler extends MethodHandler<Responder, Schema, Middlewares, Context> = MethodHandler<Responder, Schema, Middlewares, Context>,
 >{
   path: Path
+  url: Analyze<Path>
   method: Method
   schema?: Schema
   
@@ -23,6 +25,7 @@ export class Method<
 
   constructor (options: MethodOptions<Responder, Path, Method, Schema, Middlewares, Context, Handler>) {
     this.path = options.path
+    this.url = new Analyze(this.path)
     this.method = options.method
     this.schema = options.schema
     this.handler = options.handler

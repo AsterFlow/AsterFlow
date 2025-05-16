@@ -1,11 +1,11 @@
-import type { Middleware } from '../controllers/Middleware'
-import type { AsterRequest } from '../controllers/Request'
-import type { Response } from '../controllers/Response'
-import type { AsterRequestTypes } from './method'
-import type { AnySchema, InferSchema, SchemaDynamic } from './schema'
+import type { Request } from '@asterflow/request'
 import type { Method } from '../controllers/Method'
+import type { Middleware } from '../controllers/Middleware'
+import type { Response } from '../controllers/Response'
 import type { Router } from '../controllers/Router'
 import type { MiddlewareOutput } from './mindleware'
+import type { AnySchema, InferSchema, SchemaDynamic } from './schema'
+import type { ParsePath, Analyze } from '@asterflow/url-parser'
 /*
  * Enum for HTTP method types.
  */
@@ -26,14 +26,16 @@ export type InferredData<
 > = InferSchema<Schema[Method]>
 
 export type RouteHandler<
+  Path extends string,
   Responder extends Responders,
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
   Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
-  > = (args: {
-  request: AsterRequest<AsterRequestTypes>
+  > = <RequestType> (args: {
+  request: Request<RequestType>
   response: Response<Responder>;
+  url: Analyze<Path, ParsePath<Path>, Analyze<any>>
   schema: InferredData<Method, Schema>;
   middleware: Context
 }) => Promise<Response> | Response
@@ -45,7 +47,7 @@ export type RouterOptions<
   Responder extends Responders,
   Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
-  Routers extends { [Method in MethodKeys]?: RouteHandler<Responder, Method, Schema, Middlewares, Context> },
+  Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
 > = {
   name?: string
   description?: string

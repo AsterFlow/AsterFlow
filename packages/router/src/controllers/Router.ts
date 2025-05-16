@@ -1,3 +1,4 @@
+import { Analyze } from '@asterflow/url-parser'
 import type { MiddlewareOutput } from '../types/mindleware'
 import { type MethodKeys, type Responders, type RouteHandler, type RouterOptions } from '../types/router'
 import type { AnySchema, SchemaDynamic } from '../types/schema'
@@ -8,7 +9,7 @@ export class Router<
   Method extends MethodKeys,
   Schema extends SchemaDynamic<Method>,
   Responder extends Responders,
-  const Routers extends { [Method in MethodKeys]?: RouteHandler<Responder, Method, Schema, Middlewares, Context> },
+  const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
   const Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[] = [],
   const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
 > {
@@ -18,6 +19,7 @@ export class Router<
   readonly description?: string
   readonly methods: Routers
   readonly use?: Middlewares
+  readonly url: Analyze<Path>
 
   constructor(options: RouterOptions<Path, Method, Schema, Responder, Middlewares, Context, Routers>) {
     const { name, path, schema, description, methods } = options
@@ -27,5 +29,6 @@ export class Router<
     this.description = description
     this.methods = methods
     this.use = options.use
+    this.url = new Analyze(this.path)
   }
 }
