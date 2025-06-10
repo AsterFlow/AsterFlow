@@ -24,7 +24,7 @@
     },
     "core": {
       "name": "@asterflow/core",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "dependencies": {
         "@asterflow/adapter": "workspace:../packages/adapter",
         "reminist": "^1.0.3",
@@ -41,16 +41,16 @@
     },
     "packages/adapter": {
       "name": "@asterflow/adapter",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "dependencies": {
-        "@types/express": "^5.0.1",
+        "@types/express": "^5.0.3",
         "express": "^5.1.0",
       },
       "devDependencies": {
         "@asterflow/request": "workspace:../request",
         "@asterflow/router": "workspace:../router",
-        "@types/bun": "^1.2.10",
-        "fastify": "^5.3.2",
+        "@types/bun": "^1.2.15",
+        "fastify": "^5.3.3",
       },
       "peerDependencies": {
         "typescript": "^5.8.3",
@@ -58,7 +58,7 @@
     },
     "packages/request": {
       "name": "@asterflow/request",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "dependencies": {
         "@asterflow/router": "workspace:../router",
         "url-ast": "^1.0.2",
@@ -72,7 +72,7 @@
     },
     "packages/router": {
       "name": "@asterflow/router",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "dependencies": {
         "url-ast": "^1.0.2",
       },
