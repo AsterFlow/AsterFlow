@@ -28,7 +28,7 @@ export type MethodHandler<
 > = <RequestType> (args: {
   request: Request<RequestType>
   response: Response<Responder>
-  url: Analyze<Path, ParsePath<Path>, Analyze<any>>
+  url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferSchema<Schema>
   middleware: Context,
 }) => Promise<Response<Responder>> | Response<Responder>

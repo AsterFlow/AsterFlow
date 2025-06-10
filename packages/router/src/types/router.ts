@@ -39,7 +39,7 @@ export type RouteHandler<
   > = <RequestType> (args: {
   request: Request<RequestType>
   response: Response<Responder>;
-  url: Analyze<Path, ParsePath<Path>, Analyze<any>>
+  url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferredData<Method, Schema>;
   middleware: Context
 }) => Promise<Response> | Response
