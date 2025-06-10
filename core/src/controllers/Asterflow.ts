@@ -1,18 +1,15 @@
 import { Adapter, adapters, type Runtime } from '@asterflow/adapter'
-import { Reminist } from 'reminist'
 import {
   Method,
   MethodType,
   Response,
   Router,
-  type AnyMiddleware,
   type AnyRouter,
-  type MethodKeys,
-  type MiddlewareOutput,
-  type Responders,
-  type RouteHandler,
-  type SchemaDynamic,
+  type MethodKeys
 } from '@asterflow/router'
+import { Reminist } from 'reminist'
+import { Analyze, ErrorLog } from 'url-ast'
+import type { SafeParseReturnType } from 'zod'
 import { joinPaths } from '../utils/parser'
 
 type AsterFlowOptions<
@@ -48,27 +45,66 @@ export class AsterFlow<
       const pathname = request.url.getPathname()
       const router = this.reminist.find(method, pathname)
       if (!router || !router.node?.store) return notFound
-
-      switch (true) {
-      case (router.node.store instanceof Router): {
-        const func = router.node.store.methods[method] as RouteHandler<
-          string,
-          Responders,
-          MethodKeys,
-          SchemaDynamic<MethodKeys>,
-          readonly AnyMiddleware[],
-          MiddlewareOutput<readonly AnyMiddleware[]>> | undefined
+      
+      const url = request.url.withParser(router.node.store.url)
+      if (router.node.store instanceof Router) {
+        const func = router.node.store.methods[method]
         if (!func) return notFound
+
+        const schema = router.node.store.schema?.[method]?.safeParse(request.getBody())
+        if (schema !== undefined && !schema.success) {
+          return response.zodError({
+            statusCode: 422,
+            message: 'ZOD_ERROR',
+            error: schema.error
+          })
+        }
   
-        return await func({ request, response, url: request.url.withParser(router.node.store.url), schema: {}, middleware: {} })
+        return await func({
+          request,
+          response,
+          url,
+          schema: (schema as SafeParseReturnType<any, any>)?.data,
+          middleware: {}
+        })
       }
-      case (router.node.store instanceof Method): {
-        const res = await router.node.store.handler({ request, response, url: request.url.withParser(router.node.store.url), schema: {}, middleware: {} })
-  
-        return res
+      
+      try {
+        if (router.node.store instanceof Method) {
+          const schema = router.node.store.schema?.safeParse(request.getBody())
+          if (schema !== undefined && !schema.success) {
+            return response.zodError({
+              statusCode: 422,
+              message: 'ZOD_ERROR',
+              error: schema.error
+            })
+          }
+
+          return await router.node.store.handler({
+            request,
+            response,
+            url,
+            schema: (schema as SafeParseReturnType<any, any>)?.data,
+            middleware: {}
+          })
+        }
+      } catch (err) {
+        if (err instanceof ErrorLog) {
+          return response.badRequest({
+            statusCode: 400,
+            message: 'AST_ERROR',
+            error: err.message
+          })
+        }
+
+        return response.badRequest({
+          statusCode: 400,
+          message: 'ERROR',
+          error: err
+        })
       }
-      default: return notFound
-      }
+
+      return notFound
     }
   }
 
@@ -77,14 +113,16 @@ export class AsterFlow<
     const Routes extends readonly AnyRouter[]
   >(options: { basePath: BasePath; controllers: Routes }) {
     for (const router of options.controllers) {
+      const newURL = joinPaths(options.basePath, router.url.getPathname())
+      router.url = new Analyze(newURL)
+
       if (router instanceof Method) {
-        this.reminist.add(router.method as MethodKeys, router.url.getPathname(), router)
+        this.reminist.add(router.method as MethodKeys, newURL, router)
         continue
       }
 
       for (const method of Object.keys(router.methods)) {
-        console.log(method, joinPaths(options.basePath, router.url.getPathname()))
-        this.reminist.add(method as MethodKeys, joinPaths(options.basePath, router.url.getPathname()), router)
+        this.reminist.add(method as MethodKeys, newURL, router)
       }
     }
 
@@ -92,21 +130,18 @@ export class AsterFlow<
   }
 
   controller<Route extends AnyRouter>(router: Route) {
-    switch (true) {
-    case (router instanceof Router): {
-      for (const method of Object.keys(router.methods) as MethodType[]) {
-        this.reminist.add(method as MethodKeys, joinPaths('/', router.url.getPathname()), router)
-      }
-      break
-    }
-    case (router instanceof Method): {
-      this.reminist.add(router.method as MethodKeys, joinPaths('/', router.url.getPathname()), router)
-      break
-    }
-    }
+    const path = joinPaths('/', router.url.getPathname())
 
+    if (router instanceof Method) this.reminist.add(router.method, path, router)
+    else {
+      for (const method of Object.keys(router.methods) as MethodType[]) {
+        this.reminist.add(method, path, router)
+      }
+    }
+      
     return this
   }
+
   get listen () {
     return this.driver.listen.bind(this.driver) as Drive['listen']
   }

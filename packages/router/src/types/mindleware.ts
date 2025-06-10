@@ -1,7 +1,7 @@
 import type { Request } from '@asterflow/request'
 import type { Middleware } from '../controllers/Middleware'
 import type { Response } from '../controllers/Response'
-import type { Responders } from '../types/router'
+import type { Responders } from './response'
 import type { AnySchema, InferSchema } from './schema'
 
 export type AnyMiddleware = Middleware<any, any, any, any>

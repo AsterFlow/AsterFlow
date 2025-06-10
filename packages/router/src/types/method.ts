@@ -1,11 +1,24 @@
 import type { Request } from '@asterflow/request'
 import type { Middleware } from '../controllers/Middleware'
 import type { Response } from '../controllers/Response'
-import type { MiddlewareOutput } from './mindleware'
-import type { MethodKeys, Responders } from './router'
+import type { AnyMiddleware, MiddlewareOutput } from './mindleware'
+import type { Responders } from './response'
 import type { AnySchema, InferSchema } from './schema'
 import { Analyze, type ParsePath } from 'url-ast'
 
+/*
+ * Enum for HTTP method types.
+ */
+export enum MethodType {
+  get = 'get',
+  post = 'post',
+  put = 'put',
+  delete = 'delete',
+}
+
+export type MethodKeys = keyof typeof MethodType
+
+export type AnyMethodHandler =  { [Method in MethodKeys]?: MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>; }
 export type MethodHandler<
   Path extends string,
   Responder extends Responders,

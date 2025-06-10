@@ -28,6 +28,7 @@
       "dependencies": {
         "@asterflow/adapter": "workspace:../packages/adapter",
         "reminist": "^1.0.1",
+        "url-ast": "^1.0.2",
       },
       "devDependencies": {
         "@asterflow/router": "workspace:../packages/router",
@@ -60,7 +61,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@asterflow/router": "workspace:../router",
-        "url-ast": "^1.0.1",
+        "url-ast": "^1.0.2",
       },
       "devDependencies": {
         "undici-types": "^7.9.0",
@@ -73,7 +74,7 @@
       "name": "@asterflow/router",
       "version": "1.0.0",
       "dependencies": {
-        "url-ast": "^1.0.1",
+        "url-ast": "^1.0.2",
       },
       "devDependencies": {
         "@asterflow/request": "workspace:../request",
@@ -775,7 +776,7 @@
 
     "uri-js": ["uri-js@4.4.1", "", { "dependencies": { "punycode": "^2.1.0" } }, "sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg=="],
 
-    "url-ast": ["url-ast@1.0.1", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-Qm4he8US58MaeLBK5lCpPbcvKTFgcGG1qHneavKB4gv0O1o/VQ7F0scoetH2lYW38j6HmPggqiCOx2k4tGaHOg=="],
+    "url-ast": ["url-ast@1.0.2", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-zfPkctbgpbgsmxUL2A7UsU3fkLpcWg7xCdhuDuRtJC7UGuuOfiCiwsILFcEpgKZNIbpvMouB5xocHxJsm705AA=="],
 
     "vary": ["vary@1.1.2", "", {}, "sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg=="],
 

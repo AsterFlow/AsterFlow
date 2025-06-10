@@ -1,8 +1,10 @@
 import { Analyze } from 'url-ast'
 import type { MiddlewareOutput } from '../types/mindleware'
-import { type MethodKeys, type Responders, type RouteHandler, type RouterOptions } from '../types/router'
 import type { AnySchema, SchemaDynamic } from '../types/schema'
 import type { Middleware } from './Middleware'
+import type { MethodKeys } from '../types/method'
+import type { Responders } from '../types/response'
+import type { RouteHandler, RouterOptions } from '../types/router'
 
 export class Router<
   Path extends string,
@@ -19,7 +21,7 @@ export class Router<
   readonly description?: string
   readonly methods: Routers
   readonly use?: Middlewares
-  readonly url: Analyze<Path>
+  url: Analyze<Path>
 
   constructor(options: RouterOptions<Path, Method, Schema, Responder, Middlewares, Context, Routers>) {
     const { name, path, schema, description, methods } = options
