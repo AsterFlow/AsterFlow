@@ -5,7 +5,7 @@ import type { Response } from '../controllers/Response'
 import type { Router } from '../controllers/Router'
 import type { MiddlewareOutput } from './mindleware'
 import type { AnySchema, InferSchema, SchemaDynamic } from './schema'
-import type { ParsePath, Analyze } from '@asterflow/url-parser'
+import type { Analyze, ParsePath } from 'url-ast'
 /*
  * Enum for HTTP method types.
  */

@@ -1,5 +1,5 @@
 import { Adapter, adapters, type Runtime } from '@asterflow/adapter'
-import { Reminist } from '@asterflow/reminist'
+import { Reminist } from 'reminist'
 import {
   Method,
   MethodType,
@@ -21,8 +21,6 @@ type AsterFlowOptions<
   driver?: Drive
 }
 
-const byRouter = Reminist.create<AnyRouter>()
-
 export class AsterFlow<
   const Routers extends Reminist<AnyRouter, MethodKeys[]> = Reminist<AnyRouter, MethodKeys[]>,
   const Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
@@ -32,9 +30,7 @@ export class AsterFlow<
 
   constructor (options: AsterFlowOptions<Drive>) {
     this.driver = options.driver ?? adapters.node as Drive
-    this.reminist = byRouter({
-      keys: Object.keys(MethodType) as MethodKeys[]
-    }) as Routers
+    this.reminist = Reminist.create({ keys: Object.keys(MethodType) as MethodKeys[] }).withData<AnyRouter>() as Routers
     this.setup()
   }
 
@@ -51,11 +47,11 @@ export class AsterFlow<
 
       const pathname = request.url.getPathname()
       const router = this.reminist.find(method, pathname)
-      if (!router || !router.store) return notFound
+      if (!router || !router.node?.store) return notFound
 
       switch (true) {
-      case (router.store instanceof Router): {
-        const func = router.store.methods[method] as RouteHandler<
+      case (router.node.store instanceof Router): {
+        const func = router.node.store.methods[method] as RouteHandler<
           string,
           Responders,
           MethodKeys,
@@ -64,10 +60,10 @@ export class AsterFlow<
           MiddlewareOutput<readonly AnyMiddleware[]>> | undefined
         if (!func) return notFound
   
-        return await func({ request, response, url: request.url.withParser(router.store.url), schema: {}, middleware: {} })
+        return await func({ request, response, url: request.url.withParser(router.node.store.url), schema: {}, middleware: {} })
       }
-      case (router.store instanceof Method): {
-        const res = await router.store.handler({ request, response, schema: {}, middleware: {} })
+      case (router.node.store instanceof Method): {
+        const res = await router.node.store.handler({ request, response, url: request.url.withParser(router.node.store.url), schema: {}, middleware: {} })
   
         return res
       }

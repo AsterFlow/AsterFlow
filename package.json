@@ -6,7 +6,7 @@
   "workspaces": ["core", "packages/*"],
   "scripts": {
     "lint": "eslint -c eslint.config.js --fix",
-    "dev": "bun run --inspect-brk=ws://localhost:6499 exemple.ts",
+    "dev": "bun run --inspect-brk=ws://localhost:6499 core/src/exemple.ts",
     "build": "bun run build.ts",
     "publish": "bun run publish.ts"
   },

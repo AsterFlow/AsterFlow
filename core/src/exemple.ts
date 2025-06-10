@@ -1,8 +1,9 @@
 import { adapters } from '@asterflow/adapter'
-import { Middleware, Router } from '@asterflow/router'
-import { AsterFlow } from './index'
+import { Method } from '@asterflow/router'
 import fastify from 'fastify'
+import { AsterFlow } from './index'
 
+/*
 type Responder = {
   200: {
     code: string
@@ -30,18 +31,19 @@ const teste = new Middleware({
     })
   },
 })
+  */
 
-const router = new Router({
-  path: '/:id=number?teste#session',
-  methods: {
-    get({ response, url }) {
-      console.log(url.getParams())
-      console.log(url.getSearchParams())
-      console.log(url.display())
-      return response.send('Teste')
-    }
+const router = new Method({
+  path: '/users/*',
+  method: 'get',
+  handler({ response, url }) {
+    console.log('Props: ', url.getStaticProps())
+    console.log('Params: ', url.getSearchParams())
+    return response.send('Teste')
   }
 })
+
+console.log(router)
 
 const server = fastify()
 

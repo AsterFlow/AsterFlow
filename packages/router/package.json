@@ -28,6 +28,6 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@asterflow/url-parser": "workspace:../url-parser"
+    "url-ast": "^1.0.1"
   }
 }

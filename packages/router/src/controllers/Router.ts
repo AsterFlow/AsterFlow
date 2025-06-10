@@ -1,4 +1,4 @@
-import { Analyze } from '@asterflow/url-parser'
+import { Analyze } from 'url-ast'
 import type { MiddlewareOutput } from '../types/mindleware'
 import { type MethodKeys, type Responders, type RouteHandler, type RouterOptions } from '../types/router'
 import type { AnySchema, SchemaDynamic } from '../types/schema'

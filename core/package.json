@@ -40,7 +40,6 @@
   },
   "dependencies": {
     "@asterflow/adapter": "workspace:../packages/adapter",
-    "@asterflow/reminist": "workspace:../packages/reminist",
-    "@asterflow/url-parser": "workspace:../packages/url-parser"
+    "reminist": "^1.0.1"
   }
 }
