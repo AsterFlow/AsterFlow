@@ -46,7 +46,7 @@ export class AsterFlow<
       const router = this.reminist.find(method, pathname)
       if (!router || !router.node?.store) return notFound
       
-      const url = request.url.withParser(router.node.store.url)
+      const url = request.url.withParser((router.node.store as AnyRouter).url)
       if (router.node.store instanceof Router) {
         const func = router.node.store.methods[method]
         if (!func) return notFound

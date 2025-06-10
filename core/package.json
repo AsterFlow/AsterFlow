@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -32,14 +32,14 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@asterflow/router": "workspace:../packages/router",
+    "@asterflow/router": "workspace:^1.0.1",
     "zod": "^3.25.57"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@asterflow/adapter": "workspace:../packages/adapter",
+    "@asterflow/adapter": "workspace:^1.0.1",
     "reminist": "^1.0.3",
     "url-ast": "^1.0.2"
   }

@@ -1,9 +1,20 @@
+<div align="center">
+
 # @asterflow/core
 
-The heart of the AsterFlow framework, providing server initialization and configuration with strong typing.
+![license-info](https://img.shields.io/github/license/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
+![stars-info](https://img.shields.io/github/stars/Ashu11-A/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
 
-![npm version](https://img.shields.io/npm/v/@asterflow/core?style=flat-square)
-![license](https://img.shields.io/npm/l/@asterflow/core?style=flat-square)
+![last-commit](https://img.shields.io/github/last-commit/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=b4befe)
+![commit-activity](https://img.shields.io/github/commit-activity/y/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af)
+![code-size](https://img.shields.io/github/languages/code-size/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+
+![top-language](https://img.shields.io/github/languages/top/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+
+</div>
+
+> The heart of the AsterFlow framework, providing server initialization and configuration with strong typing.
 
 ## 📦 Installation
 
@@ -130,12 +141,10 @@ interface AsterFlowOptions<Drive extends Adapter<Runtime>> {
 
 ## 🔗 Related Packages
 
-- [@asterflow/adapter](../packages/adapter/README.md) - HTTP adapters for different runtimes
-- [@asterflow/router](../packages/router/README.md) - Typed routing system
-- [@asterflow/request](../packages/request/README.md) - Unified HTTP request system
-- [@asterflow/url-parser](../packages/url-parser/README.md) - Advanced URL parser
-- [@asterflow/reminist](../packages/reminist/README.md) - High-performance routing system
+- [@asterflow/adapter](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - HTTP adapters for different runtimes
+- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/router) - Typed routing system
+- [@asterflow/request](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/request) - Unified HTTP request system
 
 ## 📄 License
 
-MIT - See [LICENSE](../LICENSE) for more details.
+MIT - See [LICENSE](https://github.com/Ashu11-A/AsterFlow/blob/main/LICENSE) for more details.

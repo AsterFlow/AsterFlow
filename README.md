@@ -39,16 +39,14 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A
 | --------------------- | --------------------------------------------------------------------------------- |
 | `@asterflow/core` | The heart of the framework, providing server initialization and configuration with strong typing |
 | `@asterflow/adapter` | HTTP adapters for different runtimes (Node.js, Bun, Express, Fastify) |
-| `@asterflow/reminist` | High-performance routing system using prefix tree (trie) |
 | `@asterflow/request` | Unified HTTP request adapter system |
 | `@asterflow/router` | Type-safe routing system with middleware and validation support |
-| `@asterflow/url-parser` | High-performance URL parser with AST support |
 
 ## Installation
 
 ```bash
 # You can use any package manager - npm, pnpm, bun, etc.
-npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request @asterflow/url-parser
+npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request url-ast reminist
 ```
 
 ### ✨ Features
@@ -269,12 +267,10 @@ const aster = new AsterFlow(options)
 
 For more details about each package, check:
 
-- [@asterflow/core](packages/core/README.md) - Core framework functionality
-- [@asterflow/adapter](packages/adapter/README.md) - HTTP adapters for different runtimes
-- [@asterflow/reminist](packages/reminist/README.md) - High-performance routing system
-- [@asterflow/request](packages/request/README.md) - Unified HTTP request system
-- [@asterflow/router](packages/router/README.md) - Type-safe routing system
-- [@asterflow/url-parser](packages/url-parser/README.md) - Advanced URL parser
+- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework functionality
+- [@asterflow/adapter](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - HTTP adapters for different runtimes
+- [@asterflow/request](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/request) - Unified HTTP request system
+- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/router) - Type-safe routing system
 
 ## ⭐ Recommendations
 
@@ -287,4 +283,4 @@ If you're exploring alternatives, you might also like:
 
 ## 📄 License
 
-MIT - See [LICENSE](LICENSE) for more details.
+MIT - See [LICENSE](https://github.com/Ashu11-A/AsterFlow/blob/main/LICENSE) for more details.
