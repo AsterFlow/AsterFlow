@@ -19,10 +19,10 @@
   },
   "devDependencies": {
     "@asterflow/request": "workspace:../request",
-    "@caeljs/tsh": "^1.1.2",
+    "@caeljs/tsh": "^1.1.3",
     "@types/bun": "latest",
-    "fastify": "^5.3.2",
-    "zod": "^3.24.3"
+    "fastify": "^5.3.3",
+    "zod": "^3.25.57"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"

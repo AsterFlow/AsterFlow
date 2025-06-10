@@ -33,14 +33,14 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@asterflow/router": "workspace:../packages/router",
-    "zod": "^3.24.3"
+    "zod": "^3.25.57"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@asterflow/adapter": "workspace:../packages/adapter",
-    "reminist": "^1.0.1",
+    "reminist": "^1.0.3",
     "url-ast": "^1.0.2"
   }
 }

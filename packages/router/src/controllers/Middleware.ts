@@ -1,5 +1,5 @@
 import type { MiddlewareOptions } from '../types/mindleware'
-import type { Responders } from '../types/router'
+import type { Responders } from '../types/response'
 import type { AnySchema } from '../types/schema'
 
 export class Middleware<
