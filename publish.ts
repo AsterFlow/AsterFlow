@@ -27,19 +27,6 @@ class Publisher {
     console.log(`${this.VERSION} Updating ${pkg.name} from ${pkg.version} to ${newVersion}`)
     pkg.version = newVersion
 
-    // Atualiza também as dependências do workspace
-    for (const depType of ['dependencies', 'devDependencies', 'peerDependencies']) {
-      const deps = pkg[depType]
-      if (!deps) continue
-
-      for (const [depName, depVersion] of Object.entries(deps)) {
-        if (typeof depVersion === 'string' && depVersion.startsWith('workspace:')) {
-          // Mantém o prefixo workspace: mas atualiza a versão
-          deps[depName] = `workspace:^${newVersion}`
-        }
-      }
-    }
-
     await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
     console.log(`${this.VERSION} Updated ${pkgPath}`)
   }

@@ -1,9 +1,20 @@
+<div align="center">
+
 # @asterflow/request
 
-Unified HTTP request adapter system for AsterFlow.
+![license-info](https://img.shields.io/github/license/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
+![stars-info](https://img.shields.io/github/stars/Ashu11-A/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
 
-![npm version](https://img.shields.io/npm/v/@asterflow/request?style=flat-square)
-![license](https://img.shields.io/npm/l/@asterflow/request?style=flat-square)
+![last-commit](https://img.shields.io/github/last-commit/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=b4befe)
+![commit-activity](https://img.shields.io/github/commit-activity/y/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af)
+![code-size](https://img.shields.io/github/languages/code-size/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+
+![top-language](https://img.shields.io/github/languages/top/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/request?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+
+</div>
+
+> Unified HTTP request adapter system for AsterFlow.
 
 ## 📦 Installation
 
@@ -137,10 +148,9 @@ abstract class Request<RequestType> {
 
 ## 🔗 Related Packages
 
-- [@asterflow/core](../../core/README.md) - Core framework
-- [@asterflow/router](../router/README.md) - Routing system
-- [@asterflow/url-parser](../url-parser/README.md) - URL Parser
+- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework
+- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - Routing system
 
 ## 📄 License
 
-MIT - See [LICENSE](../../LICENSE) for more details.
+MIT - See [LICENSE](https://github.com/Ashu11-A/AsterFlow/blob/main/LICENSE) for more details.
