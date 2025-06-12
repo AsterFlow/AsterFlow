@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/adapter",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -27,16 +27,17 @@
     "node": ">=20"
   },
   "devDependencies": {
+    "@types/express": "^5.0.3",
     "@types/bun": "^1.2.15",
-    "fastify": "^5.3.3",
     "@asterflow/router": "workspace:../router",
     "@asterflow/request": "workspace:../request"
   },
   "peerDependencies": {
+    "fastify": "^5.3.3",
+    "express": "^5.1.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@types/express": "^5.0.3",
-    "express": "^5.1.0"
+    "@asterflow/response": "workspace:../response"
   }
 }

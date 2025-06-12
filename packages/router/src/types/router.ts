@@ -1,24 +1,22 @@
 import type { Request } from '@asterflow/request'
+import type { Responders, Response } from '@asterflow/response'
 import type { Analyze, ParsePath } from 'url-ast'
 import type { Method } from '../controllers/Method'
 import type { Middleware } from '../controllers/Middleware'
-import type { Response } from '../controllers/Response'
 import type { Router } from '../controllers/Router'
 import type { MethodKeys } from './method'
 import type { AnyMiddleware, MiddlewareOutput } from './mindleware'
-import type { Responders } from './response'
 import type { AnySchema, InferredData, SchemaDynamic } from './schema'
 
 export type AnyRouteHandler =  { [Method in MethodKeys]?: RouteHandler<string, Responders, Method, SchemaDynamic<Method>, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>; }
 export type AnyRouter =
   Router<
-    string,
-    MethodKeys,
-    SchemaDynamic<MethodKeys>,
     Responders,
-    AnyRouteHandler,
+    string,
+    SchemaDynamic<MethodKeys>,
     AnyMiddleware[],
-    MiddlewareOutput<AnyMiddleware[]>
+    MiddlewareOutput<AnyMiddleware[]>,
+    AnyRouteHandler
   > | Method<
   Responders,
   string,
@@ -46,8 +44,7 @@ export type RouteHandler<
 
 export type RouterOptions<
   Path extends string,
-  Method extends MethodKeys,
-  Schema extends SchemaDynamic<Method>,
+  Schema extends SchemaDynamic<MethodKeys>,
   Responder extends Responders,
   Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,

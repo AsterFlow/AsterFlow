@@ -30,6 +30,7 @@
     "paths": {
       "@asterflow/router": ["../packages/router/src/index.ts"],
       "@asterflow/request": ["../packages/request/src/index.ts"],
+      "@asterflow/response": ["../packages/response/src/index.ts"],
       "@asterflow/adapter": ["../packages/adapter/src/index.ts"],
     }
   }

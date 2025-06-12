@@ -112,44 +112,12 @@ createServer(async (req, res) => {
 })
 ```
 
-## 📚 API Reference
-
-### Base Request Class
-
-```typescript
-abstract class Request<RequestType> {
-  // Properties
-  request: RequestType
-  url: Analyze<string>
-
-  // Abstract Methods
-  abstract getBody(): Promise<unknown> | unknown
-  abstract getHeaders(): Record<string, string>
-  abstract getMethod(): string
-  abstract getPathname(): string
-}
-```
-
-### Available Adapters
-
-- **ExpressRequest:** Adapter for Express.js
-- **BunRequest:** Adapter for Bun
-- **FastifyRequest:** Adapter for Fastify
-- **NodeRequest:** Adapter for Node.js HTTP
-
-### Common Methods
-
-| Method | Return | Description |
-|--------|---------|-----------|
-| `getBody()` | `Promise<unknown> \| unknown` | Gets the request body |
-| `getHeaders()` | `Record<string, string>` | Gets the request headers |
-| `getMethod()` | `string` | Gets the HTTP method |
-| `getPathname()` | `string` | Gets the URL path |
-
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework
-- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - Routing system
+- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
+- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
+- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
 
 ## 📄 License
 

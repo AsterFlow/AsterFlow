@@ -1,10 +1,10 @@
+import { exec } from 'child_process'
+import * as esbuild from 'esbuild'
 import { existsSync } from 'fs'
 import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { glob } from 'glob'
-import { dirname, join, resolve } from 'path'
-import * as esbuild from 'esbuild'
 import JSON5 from 'json5'
-import { exec } from 'child_process'
+import { dirname, join } from 'path'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
@@ -353,35 +353,26 @@ class Builder {
   public async build(): Promise<void> {
     console.log(`${this.CLI} 🚀 Starting modular build process...`)
     
-    // 1. Limpeza e descoberta de pacotes
     await this.cleanPublishDirectory()
     await this.registry.discoverPackages()
-    
-    // 2. Geração de tipos
     await this.tsBuilder.generateTypes()
     
-    // 3. Build modular de cada pacote
     const packages = this.registry.getAllPackages()
     
-         for (const packageInfo of packages) {
-       console.log(`\n${this.CLI} ═══ Building ${packageInfo.name} ═══`)
+    for (const packageInfo of packages) {
+      console.log(`\n${this.CLI} ═══ Building ${packageInfo.name} ═══`)
        
-       // Merge tsconfig
-       await this.tsBuilder.mergeTsConfig(packageInfo)
+      await this.tsBuilder.mergeTsConfig(packageInfo)
        
-       // Resolver dependências workspace
-       const workspaceDeps = await this.registry.resolveWorkspaceDependencies(packageInfo.path)
-       console.log(`${this.CLI} Workspace dependencies for ${packageInfo.name}:`, 
-         workspaceDeps.map(dep => `${dep.name}@${dep.targetVersion}`))
+      const workspaceDeps = await this.registry.resolveWorkspaceDependencies(packageInfo.path)
+      console.log(`${this.CLI} Workspace dependencies for ${packageInfo.name}:`, 
+        workspaceDeps.map(dep => `${dep.name}@${dep.targetVersion}`))
        
-       // Build do pacote
-       await this.esBuildBuilder.buildPackage(packageInfo, workspaceDeps)
-     }
+      await this.esBuildBuilder.buildPackage(packageInfo, workspaceDeps)
+    }
     
-    // 4. Cópia de tipos
     await this.tsBuilder.copyTypesToPublish()
     
-    // 5. Substituição de dependências workspace
     console.log(`\n${this.CLI} ═══ Updating workspace dependencies ═══`)
     for (const packageInfo of packages) {
       await this.dependencyManager.replaceWorkspaceDependencies(packageInfo)

@@ -1,8 +1,8 @@
 import { adapters } from '@asterflow/adapter'
-import { Method } from '@asterflow/router'
+import { createRouter, Method } from '@asterflow/router'
 import fastify from 'fastify'
-import { AsterFlow } from './index'
 import { z } from 'zod'
+import { AsterFlow } from './index'
 
 /*
 type Responder = {
@@ -51,11 +51,23 @@ const router = new Method({
 const test = new Method({
   path: '/test?data=number',
   method: 'get',
-  handler({ response, url, schema }) {
-    console.log('Schema:', schema)
+  handler({ response, url }) {
     console.log('Params:', url.getParams())
     console.log('Search Params:', url.getSearchParams())
     return response.send('Teste')
+  }
+})
+
+
+const test2 = createRouter<{ 200: string }>()({
+  path: '/test',
+  schema: {
+    get: z.object({})
+  },
+  methods: {
+    get({ response }) {
+      return response.success('')
+    }
   }
 })
 
@@ -69,8 +81,15 @@ const aster = new AsterFlow({ driver: adapters.fastify })
     controllers: [test]
   })
 
-console.log(aster.reminist.getRoot('get'))
+const route = aster.reminist.find('get', '/:id/test')
 
+// Adicione uma verificação para ter certeza de que a rota foi encontrada
+if (route && route.node && route.node.store) {
+  // Acesse a propriedade .store para ver o seu RouteEntry
+  console.log(route.node.store) 
+} else {
+  console.log('Rota não foi encontrada.')
+}
 aster.listen(server, { port: 3333 }, (err) => {
   if (err) {
     console.error(err)

@@ -156,100 +156,12 @@ app.listen(server, { port: 3333 }, (err) => {
 })
 ```
 
-## 📚 API Reference
-
-### Router Class
-
-```typescript
-class Router<
-  Path extends string,
-  Method extends MethodKeys,
-  Schema extends SchemaDynamic<Method>,
-  Responder extends Responders,
-  Middlewares extends readonly Middleware[]
-> {
-  constructor(options: {
-    path: Path
-    name?: string
-    description?: string
-    use?: Middlewares
-    schema?: Schema
-    methods: {
-      [M in MethodKeys]?: RouteHandler
-    }
-  })
-}
-```
-
-### Method Class
-
-```typescript
-class Method<
-  Responder extends Responders,
-  Path extends string,
-  Method extends MethodKeys,
-  Schema extends AnySchema,
-  Middlewares extends readonly Middleware[]
-> {
-  constructor(options: {
-    path: Path
-    method: Method
-    name?: string
-    schema?: Schema
-    use?: Middlewares
-    handler: MethodHandler
-  })
-}
-```
-
-### Response Class
-
-```typescript
-class Response<Responder extends Responders> {
-  // Status Methods
-  success(data: Responder[200]): Response
-  created(data: Responder[201]): Response
-  noContent(data: Responder[204]): Response
-  badRequest(data: Responder[400]): Response
-  unauthorized(data: Responder[401]): Response
-  forbidden(data: Responder[403]): Response
-  notFound(data: Responder[404]): Response
-
-  // Headers and Cookies
-  setHeader(name: string, value: string): Response
-  setCookie(name: string, value: string): Response
-
-  // Conversion
-  toResponse(): globalThis.Response
-  toServerResponse(output: ServerResponse): void
-}
-```
-
-### Middleware Class
-
-```typescript
-class Middleware<
-  Responder extends Responders,
-  Schema extends AnySchema,
-  Name extends string,
-  Parameters extends Record<string, unknown>
-> {
-  constructor(options: {
-    name: Name
-    onRun: (args: {
-      request: Request
-      response: Response<Responder>
-      schema: InferSchema<Schema>
-      next: (params: Parameters) => MiddlewareOptions
-    }) => MiddlewareOptions
-  })
-}
-```
-
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework
-- [@asterflow/adapter](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - Adapters for different HTTP servers
+- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - Adapters for different HTTP servers
+- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
+- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
 
 ## 📄 License
 

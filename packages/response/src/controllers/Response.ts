@@ -26,7 +26,7 @@ export class Response<
     this.cookies = options?.cookies ?? (new Map() as Cookies)
   }
 
-  // Overload 1: não se altera o status (usa o status atual)
+  // Não se altera o status (usa o status atual)
   protected clone<
     NewHeader extends Map<string, string> = Header,
     NewCookies extends Map<string, string> = Cookies
@@ -36,7 +36,7 @@ export class Response<
     cookies?: NewCookies
   }): Response<Responder, BM, Status, NewHeader, NewCookies>
 
-  // Overload 2: altera o status (o novo status é fornecido via `code`)
+  // Altera o status (o novo status é fornecido via `code`)
   protected clone<
     NewStatus extends keyof BM,
     NewCookies extends Map<string, string> = Cookies

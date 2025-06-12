@@ -1,5 +1,5 @@
 import { type Express, type Response as ExResponse, type Request } from 'express'
-import { Response } from '@asterflow/router'
+import { Response } from '@asterflow/response'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
 import { ExpressRequest } from '@asterflow/request'

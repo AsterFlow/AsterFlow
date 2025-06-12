@@ -10,7 +10,7 @@
 ![code-size](https://img.shields.io/github/languages/code-size/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
 
 ![top-language](https://img.shields.io/github/languages/top/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
-![bundle-size](https://img.shields.io/bundlejs/size/AsterFlow?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
 </div>
 
@@ -30,7 +30,7 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A
 - **Parameter Validation:** Natively support Zod or @caeljs/config for per-route schema validation.
 - **Multi-Server Compatibility:** Abstractions for Node.js, Bun, Express, and Fastify.
 - **tRPC-Inspired API:** Consume routes in a fully type-safe manner without auxiliary files.
-- **Standardized Response Handling:** Dynamically configure status codes and response formats.
+- **Standardized Response Handling:** Type-safe response system with status helpers and unified format handling.
 - **Package-Based Architecture:** Core, Driver, and Router modules are decoupled for maximum scalability.
 
 ## 📦 Packages
@@ -40,13 +40,14 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A
 | `@asterflow/core` | The heart of the framework, providing server initialization and configuration with strong typing |
 | `@asterflow/adapter` | HTTP adapters for different runtimes (Node.js, Bun, Express, Fastify) |
 | `@asterflow/request` | Unified HTTP request adapter system |
+| `@asterflow/response` | Type-safe HTTP response system with status helpers and runtime compatibility |
 | `@asterflow/router` | Type-safe routing system with middleware and validation support |
 
 ## Installation
 
 ```bash
 # You can use any package manager - npm, pnpm, bun, etc.
-npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request url-ast reminist
+npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request @asterflow/response url-ast reminist
 ```
 
 ### ✨ Features
@@ -56,7 +57,7 @@ npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/requ
 - **Parameter Validation:** Native support for Zod and @caeljs/config
 - **Advanced URL Analysis:** URL parser with AST support and automatic typing
 - **Middleware System:** Full middleware support with typed context
-- **Standardized Responses:** Unified response system with standard HTTP codes
+- **Standardized Responses:** Type-safe response system with status helpers and runtime compatibility
 - **Modular Architecture:** Decoupled packages for maximum scalability
 - **Dynamic Typing:** Automatic type inference without external files
 - **tRPC-Inspired API:** Fully type-safe route consumption
@@ -241,36 +242,6 @@ aster.router({
 aster.listen(null, { port: 3000 })
 ```
 </details>
-
-## 📚 Documentation
-
-### 🔧 Core API Reference
-
-The `@asterflow/core` package provides the following main features:
-
-#### AsterFlow Class
-
-```typescript
-interface AsterFlowOptions<Drive extends Adapter<Runtime>> {
-  driver?: Drive
-}
-
-// Initialize the framework
-const aster = new AsterFlow(options)
-```
-
-**Methods:**
-- `listen(server, options)`: Starts the HTTP server
-- `router({ basePath, controllers })`: Registers multiple routes with a base path
-- `controller(router)`: Registers an individual route
-- `setup()`: Configures the request handler
-
-For more details about each package, check:
-
-- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework functionality
-- [@asterflow/adapter](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - HTTP adapters for different runtimes
-- [@asterflow/request](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/request) - Unified HTTP request system
-- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/router) - Type-safe routing system
 
 ## ⭐ Recommendations
 

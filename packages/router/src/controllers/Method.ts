@@ -1,7 +1,7 @@
+import type { Responders } from '@asterflow/response'
 import { Analyze } from 'url-ast'
 import type { MethodHandler, MethodKeys, MethodOptions } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
-import type { Responders } from '../types/response'
 import type { AnySchema } from '../types/schema'
 import type { Middleware } from './Middleware'
 

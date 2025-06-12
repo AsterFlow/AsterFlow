@@ -1,6 +1,6 @@
 import type { Request } from '@asterflow/request'
+import { Response as ResponseCustom } from '@asterflow/response'
 import { Runtime, type OptionsDriver } from '../types/adapter'
-import { Response as ResponseCustom  } from '@asterflow/router'
 
 export class Adapter<
   Type extends Runtime

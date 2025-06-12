@@ -1,29 +1,28 @@
+import type { Responders } from '@asterflow/response'
 import { Analyze } from 'url-ast'
+import type { MethodKeys } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
+import type { RouteHandler, RouterOptions } from '../types/router'
 import type { AnySchema, SchemaDynamic } from '../types/schema'
 import type { Middleware } from './Middleware'
-import type { MethodKeys } from '../types/method'
-import type { Responders } from '../types/response'
-import type { RouteHandler, RouterOptions } from '../types/router'
 
 export class Router<
-  Path extends string,
-  Method extends MethodKeys,
-  Schema extends SchemaDynamic<Method>,
   Responder extends Responders,
-  const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
+  const Path extends string = string,
+  const Schema extends SchemaDynamic<MethodKeys> = SchemaDynamic<MethodKeys>,
   const Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[] = [],
   const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
+  const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> } = { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
 > {
-  readonly name?: string
-  readonly path: Path
-  readonly schema?: Schema
-  readonly description?: string
-  readonly methods: Routers
-  readonly use?: Middlewares
+  name?: string
+  path: Path
+  schema?: Schema
+  description?: string
+  methods: Routers
+  use?: Middlewares
   url: Analyze<Path>
 
-  constructor(options: RouterOptions<Path, Method, Schema, Responder, Middlewares, Context, Routers>) {
+  constructor(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>) {
     const { name, path, schema, description, methods } = options
     this.name = name
     this.path = path

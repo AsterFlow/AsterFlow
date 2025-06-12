@@ -177,51 +177,12 @@ interface ErrorPayload {
 }
 ```
 
-## 📚 API Reference
-
-### Main Types
-
-```typescript
-enum Runtime {
-  Bun = 'bun',
-  Express = 'express',
-  Node = 'node',
-  Fastify = 'fastify'
-}
-
-interface OptionsDriver<Type extends Runtime> {
-  runtime: Type
-  listen: (...params: ListenParams<Type>) => void
-  onRequest?: (request: Request, response?: Response) => Response | Promise<Response>
-}
-```
-
-### Configuration Options
-
-Each adapter accepts runtime-specific options while maintaining proper typing:
-
-```typescript
-// Node/Bun
-interface ListenOptions {
-  port: number
-  host?: string
-  backlog?: number
-}
-
-// Fastify
-interface FastifyOptions extends FastifyListenOptions {
-  // Fastify-specific options
-}
-
-// Express
-type ExpressOptions = Express.Application
-```
-
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://github.com/Ashu11-A/AsterFlow/tree/main/core) - Core framework
-- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/router) - Routing system
-- [@asterflow/request](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/request) - Unified HTTP request system
+- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
+- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
+- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
 
 ## 📄 License
 

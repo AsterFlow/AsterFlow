@@ -120,30 +120,14 @@ const route = new Method({
 aster.controller(route)
 ```
 
-## 📚 API Reference
-
-### AsterFlow Class
-
-#### Constructor Options
-
-```typescript
-interface AsterFlowOptions<Drive extends Adapter<Runtime>> {
-  driver?: Drive
-}
-```
-
-#### Methods
-
-- `listen(server, options)`: Starts the HTTP server
-- `router({ basePath, controllers })`: Registers multiple routes with a base path
-- `controller(router)`: Registers an individual route
-- `setup()`: Configures the request handler
-
 ## 🔗 Related Packages
 
-- [@asterflow/adapter](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/adapter) - HTTP adapters for different runtimes
-- [@asterflow/router](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/router) - Typed routing system
-- [@asterflow/request](https://github.com/Ashu11-A/AsterFlow/tree/main/packages/request) - Unified HTTP request system
+- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
+- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
+- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
+- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
+- [reminist](https://www.npmjs.com/package/reminist) - Blazing fast, zero-dependency, TypeScript-native router
+- [url-ast](https://www.npmjs.com/package/url-ast) - High-performance typed URL parser with automatic type casting
 
 ## 📄 License
 

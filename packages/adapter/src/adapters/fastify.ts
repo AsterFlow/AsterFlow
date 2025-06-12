@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify'
-import { Response } from '@asterflow/router'
+import { Response } from '@asterflow/response'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
 import { FastifyRequest } from '@asterflow/request'

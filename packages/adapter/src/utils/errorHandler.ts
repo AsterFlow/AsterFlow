@@ -1,4 +1,4 @@
-import { Response } from '@asterflow/router'
+import { Response } from '@asterflow/response'
 
 interface ErrorPayload {
   statusCode: number;
