@@ -4,7 +4,7 @@ import { existsSync } from 'fs'
 import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import JSON5 from 'json5'
-import { dirname, join } from 'path'
+import { dirname, join, relative } from 'path'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
@@ -99,14 +99,12 @@ class TypeScriptBuilder {
     console.log(`${this.TYPES} Generating TypeScript declarations...`)
     
     try {
-      // Limpa a pasta dist antes de gerar as tipagens
       if (existsSync('core/dist')) {
         console.log(`${this.TYPES} Cleaning up old dist directory...`)
         await rm('core/dist', { recursive: true })
         console.log(`${this.TYPES} Cleaned dist directory`)
       }
 
-      // Gera as tipagens usando tsc
       await execAsync('tsc -p core/tsconfig.build.json --noEmit false')
       console.log(`${this.TYPES} TypeScript declarations generated successfully`)
     } catch (error) {
@@ -118,7 +116,6 @@ class TypeScriptBuilder {
   async copyTypesToPublish(): Promise<void> {
     console.log(`${this.TYPES} Copying type definitions to publish directory...`)
 
-    // Copia as tipagens da pasta core
     if (existsSync('core/dist/types/core/src')) {
       await mkdir('publish/core/dist/types', { recursive: true })
       const coreFiles = await glob('core/dist/types/core/src/**/*.ts')
@@ -131,7 +128,6 @@ class TypeScriptBuilder {
       }
     }
 
-    // Copia as tipagens dos pacotes
     const packages = await glob('core/dist/types/packages/*')
     for (const packagePath of packages) {
       const packageName = packagePath.split('/').pop()
@@ -165,10 +161,8 @@ class TypeScriptBuilder {
     const packageConfigContent = await readFile(packageConfigPath, 'utf-8')
     const packageConfig = JSON5.parse(packageConfigContent)
     
-    // Remove extends since we're manually merging
     delete packageConfig.extends
     
-    // Deep merge, with package config taking precedence
     const mergedConfig = {
       ...baseConfig,
       compilerOptions: {
@@ -178,13 +172,11 @@ class TypeScriptBuilder {
       ...packageConfig
     }
 
-    // Remove baseUrl and paths
     if (mergedConfig.compilerOptions) {
       delete mergedConfig.compilerOptions.baseUrl
       delete mergedConfig.compilerOptions.paths
     }
 
-    // Set include to ["dist"]
     mergedConfig.include = ['dist']
     
     const mergedConfigPath = join(publishPath, 'tsconfig.json')
@@ -217,42 +209,41 @@ class ESBuildBuilder {
     const dirName = publishPath.replace('publish/', '')
     console.log(`${this.CLI} Building package: ${name}`)
 
-    // Criar plugins do esbuild
-    const plugins = this.createESBuildPlugins(workspaceDeps, path)
+    const plugins = this.createESBuildPlugins(workspaceDeps)
+    const cjsOutfile = `${publishPath}/dist/cjs/index.cjs`
+    const esmOutfile = `${publishPath}/dist/mjs/index.js`
 
-    // Build CJS
     console.log(`${this.CLI} Building CJS for ${name}`)
     await esbuild.build({
       ...this.sharedConfig,
       entryPoints: [`${path}/src/index.ts`],
-      outfile: `${publishPath}/dist/cjs/index.cjs`,
+      outfile: cjsOutfile,
       format: 'cjs',
       plugins
     })
+    await this.postProcessBundle(cjsOutfile)
     console.log(`${this.CLI} Built CJS for ${name}`)
 
-    // Build ESM
     console.log(`${this.ESM} Building ESM for ${name}`)
     await esbuild.build({
       ...this.sharedConfig,
       entryPoints: [`${path}/src/index.ts`],
-      outfile: `${publishPath}/dist/mjs/index.js`,
+      outfile: esmOutfile,
       format: 'esm',
       plugins
     })
+    await this.postProcessBundle(esmOutfile)
     console.log(`${this.ESM} Built ESM for ${name}`)
 
-    // Copy package assets
     await this.copyAssets(path, dirName)
 
-    // Write package.json files for type declarations
     await writeFile(`${publishPath}/dist/cjs/package.json`, JSON.stringify({ type: 'commonjs' }, null, 2))
     await writeFile(`${publishPath}/dist/mjs/package.json`, JSON.stringify({ type: 'module' }, null, 2))
 
     console.log(`${this.CLI} Finished packaging ${name}`)
   }
 
-  private createESBuildPlugins(workspaceDeps: WorkspaceDependency[], packagePath: string): esbuild.Plugin[] {
+  private createESBuildPlugins(workspaceDeps: WorkspaceDependency[]): esbuild.Plugin[] {
     const workspaceMap = new Map(workspaceDeps.map(dep => [dep.name, dep]))
 
     return [
@@ -260,8 +251,7 @@ class ESBuildBuilder {
         name: 'workspace-resolver',
         setup(build) {
           build.onResolve({ filter: /^@asterflow\// }, (args) => {
-            const pkgName = args.path
-            if (workspaceMap.has(pkgName)) {
+            if (workspaceMap.has(args.path)) {
               return { external: true }
             }
             return null
@@ -273,13 +263,42 @@ class ESBuildBuilder {
         setup(build) {
           build.onLoad({ filter: /\.tsx?$/ }, async (args) => {
             const contents = await readFile(args.path, 'utf8')
-            const relativePath = args.path.split('/src/')[1] || args.path.split(`${packagePath}/`)[1]
+            const relativePath = relative(process.cwd(), args.path).replace(/\\/g, '/')
             const newContents = `// ${relativePath}\n${contents}`
             return { contents: newContents, loader: args.path.endsWith('.tsx') ? 'tsx' : 'ts' }
           })
         }
       }
     ]
+  }
+  
+  private async postProcessBundle(filePath: string): Promise<void> {
+    if (!existsSync(filePath)) return
+
+    let content = await readFile(filePath, 'utf-8')
+
+    // Regex para encontrar:
+    // Comentários de bloco (`/* ... */`)
+    // Comentários de linha (`// ...`), que são capturados em um grupo
+    const commentRegex = /\/\*[\s\S]*?\*\/|(\/\/[^\r\n]*)/g
+
+    content = content.replace(commentRegex, (match, singleLineComment) => {
+      // Se `singleLineComment` foi capturado, significa que a regex encontrou um `//`
+      if (singleLineComment) {
+        // Verificamos se é um comentário de caminho que queremos preservar
+        if (singleLineComment.startsWith('// core/') || singleLineComment.startsWith('// packages/')) {
+          return singleLineComment // Mantém o comentário
+        }
+      }
+      // Para todos os outros casos (comentários de bloco ou de linha que não queremos),
+      // retorna uma string vazia, efetivamente removendo-os.
+      return ''
+    })
+
+    // Remove linhas em branco extras que podem ter sido deixadas para trás
+    content = content.replace(/^\s*[\r\n]/gm, '')
+
+    await writeFile(filePath, content, 'utf-8')
   }
 
   private async copyAssets(sourcePath: string, targetDir: string): Promise<void> {

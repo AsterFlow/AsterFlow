@@ -1,6 +1,6 @@
 {
-  "name": "@asterflow/response",
-  "version": "1.0.2",
+  "name": "@asterflow/plugin",
+  "version": "1.0.1",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -16,6 +16,11 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "@asterflow/core": "workspace:../../core",
+    "@asterflow/response": "workspace:../response",
+    "@asterflow/request": "workspace:../request"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"

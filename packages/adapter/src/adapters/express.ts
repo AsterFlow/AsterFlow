@@ -1,8 +1,8 @@
-import { type Express, type Response as ExResponse, type Request } from 'express'
+import { ExpressRequest } from '@asterflow/request'
 import { Response } from '@asterflow/response'
+import { type Express, type Response as ExResponse, type Request } from 'express'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
-import { ExpressRequest } from '@asterflow/request'
 
 export default new Adapter({
   runtime: Runtime.Express,
@@ -27,7 +27,10 @@ export default new Adapter({
         .send(await response.text())
     })
 
-    instance.listen(...params)
-    return instance
-  },
+    return new Promise<void>((resolve, reject) => {
+      const server = instance.listen(...params, () => resolve())
+
+      server.on('error', (err) => reject(err))
+    })
+  }
 })

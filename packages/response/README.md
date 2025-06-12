@@ -208,6 +208,7 @@ const response = new Response()
 - [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
 - [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
+- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
 
 ## 📄 License
 

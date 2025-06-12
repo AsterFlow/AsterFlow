@@ -1,99 +1,43 @@
 import { adapters } from '@asterflow/adapter'
-import { createRouter, Method } from '@asterflow/router'
+import { Plugin } from '@asterflow/plugin'
+import { Method } from '@asterflow/router'
 import fastify from 'fastify'
-import { z } from 'zod'
 import { AsterFlow } from './index'
 
-/*
-type Responder = {
-  200: {
-    code: string
-  }
-}
-
-const auth = new Middleware({
-  name: 'auth',
-  onRun({ schema, next }) {
-    console.log(schema)
-
-    return next({
-      auth: false
-    })
-  },
-})
-
-const teste = new Middleware({
-  name: 'teste',
-  onRun({ schema, next }) {
-    console.log(schema)
-
-    return next({
-      teste: ''
-    })
-  },
-})
-  */
-
 const router = new Method({
-  path: '/users/:id=number?data=number',
-  method: 'post',
-  schema: z.object({
-    exemplo: z.string()
-  }),
-  handler({ response, url, schema }) {
-    console.log('Schema:', schema.exemplo)
-    console.log('Params:', url.getParams())
-    console.log('Search Params:', url.getSearchParams())
-    return response.send('Teste')
-  }
-})
-
-const test = new Method({
-  path: '/test?data=number',
+  path: '/',
   method: 'get',
   handler({ response, url }) {
     console.log('Params:', url.getParams())
     console.log('Search Params:', url.getSearchParams())
+    // console.log(plugins)
     return response.send('Teste')
-  }
-})
-
-
-const test2 = createRouter<{ 200: string }>()({
-  path: '/test',
-  schema: {
-    get: z.object({})
-  },
-  methods: {
-    get({ response }) {
-      return response.success('')
-    }
   }
 })
 
 const server = fastify()
 
+const plugin = Plugin
+  .create({ name: 'auth' })
+  .withConfig({ path: process.cwd() })
+  .derive('auth', (ctx) => ({ path: ctx.path }))
+  .decorate('token', '1234')
+  .on('afterInitialize', () => console.log('after'))
+  .on('beforeInitialize', () => console.log('before'))
+  .on('onRequest', () => console.log('request'))
+  .on('onResponse', () => console.log('response'))
+
 const aster = new AsterFlow({ driver: adapters.fastify })
-  // Adiciona rotas individuais
   .controller(router)
-  .router({
-    basePath: '/:id=number',
-    controllers: [test]
-  })
+  .use(plugin, { path: 'test' })
 
-const route = aster.reminist.find('get', '/:id/test')
+console.log(JSON.stringify(plugin, null, 2))
 
-// Adicione uma verificação para ter certeza de que a rota foi encontrada
-if (route && route.node && route.node.store) {
-  // Acesse a propriedade .store para ver o seu RouteEntry
-  console.log(route.node.store) 
-} else {
-  console.log('Rota não foi encontrada.')
-}
-aster.listen(server, { port: 3333 }, (err) => {
+await aster.listen(server, { port: 3333 }, (err) => {
   if (err) {
     console.error(err)
     process.exit(1)
   }
+
   console.log('Server listening!')
 })

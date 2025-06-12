@@ -183,6 +183,7 @@ interface ErrorPayload {
 - [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
+- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
 
 ## 📄 License
 

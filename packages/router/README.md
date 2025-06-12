@@ -162,6 +162,7 @@ app.listen(server, { port: 3333 }, (err) => {
 - [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - Adapters for different HTTP servers
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
+- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
 
 ## 📄 License
 

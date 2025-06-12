@@ -1,7 +1,7 @@
 import { BunRequest } from '@asterflow/request'
+import { Response } from '@asterflow/response'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
-import { Response } from '@asterflow/response'
 
 export default new Adapter({
   runtime: Runtime.Bun,

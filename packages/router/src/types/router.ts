@@ -10,22 +10,7 @@ import type { AnySchema, InferredData, SchemaDynamic } from './schema'
 
 export type AnyRouteHandler =  { [Method in MethodKeys]?: RouteHandler<string, Responders, Method, SchemaDynamic<Method>, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>; }
 export type AnyRouter =
-  Router<
-    Responders,
-    string,
-    SchemaDynamic<MethodKeys>,
-    AnyMiddleware[],
-    MiddlewareOutput<AnyMiddleware[]>,
-    AnyRouteHandler
-  > | Method<
-  Responders,
-  string,
-  MethodKeys,
-  AnySchema,
-  AnyMiddleware[],
-  MiddlewareOutput<AnyMiddleware[]>,
-  any
-  >
+  Router<any, any, any, any, any, any> | Method<any, any, any, any, any, any, any>
 
 export type RouteHandler<
   Path extends string,

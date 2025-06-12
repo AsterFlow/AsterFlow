@@ -1,15 +1,15 @@
-import { createServer } from 'http'
+import { NodeRequest } from '@asterflow/request'
 import { Response } from '@asterflow/response'
+import { createServer } from 'http'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
-import { NodeRequest } from '@asterflow/request'
 import { toErrorResponse } from '../utils/errorHandler'
 
 export default new Adapter({
   runtime: Runtime.Node,
   listen(params, callback) {
-    try {
-      createServer(async (request, response) => {
+    return new Promise<void>((resolve, reject) => {
+      const server = createServer(async (request, response) => {
         if (!this.onRequest) return new Response().notFound({
           statusCode: 500,
           error: 'Internal Server Error',
@@ -22,11 +22,17 @@ export default new Adapter({
         } catch (err) {
           return toErrorResponse(err).toServerResponse(response)
         }
-      }).listen(params)
+      })
       
-      callback?.(null)
-    } catch (err) {
-      callback?.(err as Error)
-    }
+      server.on('error', (err) => {
+        callback?.(err as Error)
+        reject(err)
+      })
+
+      server.listen(params, () => {
+        callback?.(null)
+        resolve()
+      })
+    })
   },
 })

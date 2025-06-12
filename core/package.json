@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -30,17 +30,15 @@
     "dev": "bun run --inspect=ws://localhost:6499 src/index.ts",
     "exemple": "bun run --inspect-brk=ws://localhost:6499 src/exemple.ts"
   },
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
   "peerDependencies": {
     "zod": "^3.25.62",
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@asterflow/router": "workspace:../packages/router",
     "@asterflow/adapter": "workspace:../packages/adapter",
+    "@asterflow/plugin": "workspace:../packages/plugin",
     "@asterflow/response": "workspace:../packages/response",
+    "@asterflow/router": "workspace:../packages/router",
     "reminist": "^1.0.5",
     "url-ast": "^1.0.3"
   }

@@ -6,6 +6,6 @@
     "declarationDir": "dist/types",
     "noEmit": false,
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts", "../packages/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/exemple.ts"]
 }

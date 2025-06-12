@@ -68,14 +68,4 @@ export class NodeRequest extends Request<IncomingMessage> {
   getMethod(): string {
     return this.request.method ?? 'GET'
   }
-
-  getIps(): string[] {
-    throw new Error('Method not implemented.')
-  }
-  getIp(): string {
-    throw new Error('Method not implemented.')
-  }
-  getId(): string | undefined {
-    throw new Error('Method not implemented.')
-  }
 }

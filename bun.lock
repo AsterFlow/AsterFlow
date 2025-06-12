@@ -24,16 +24,14 @@
     },
     "core": {
       "name": "@asterflow/core",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "dependencies": {
         "@asterflow/adapter": "workspace:../packages/adapter",
+        "@asterflow/plugin": "workspace:../packages/plugin",
         "@asterflow/response": "workspace:../packages/response",
         "@asterflow/router": "workspace:../packages/router",
         "reminist": "^1.0.5",
         "url-ast": "^1.0.3",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
       },
       "peerDependencies": {
         "typescript": "^5.8.3",
@@ -42,14 +40,13 @@
     },
     "packages/adapter": {
       "name": "@asterflow/adapter",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "dependencies": {
+        "@asterflow/request": "workspace:../request",
         "@asterflow/response": "workspace:../response",
       },
       "devDependencies": {
-        "@asterflow/request": "workspace:../request",
         "@asterflow/router": "workspace:../router",
-        "@types/bun": "^1.2.15",
         "@types/express": "^5.0.3",
       },
       "peerDependencies": {
@@ -58,9 +55,21 @@
         "typescript": "^5.8.3",
       },
     },
+    "packages/plugin": {
+      "name": "@asterflow/plugin",
+      "version": "1.0.0",
+      "devDependencies": {
+        "@asterflow/core": "workspace:../../core",
+        "@asterflow/request": "workspace:../request",
+        "@asterflow/response": "workspace:../response",
+      },
+      "peerDependencies": {
+        "typescript": "^5.8.3",
+      },
+    },
     "packages/request": {
       "name": "@asterflow/request",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "dependencies": {
         "@asterflow/router": "workspace:../router",
         "url-ast": "^1.0.3",
@@ -74,14 +83,14 @@
     },
     "packages/response": {
       "name": "@asterflow/response",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "peerDependencies": {
         "typescript": "^5.8.3",
       },
     },
     "packages/router": {
       "name": "@asterflow/router",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "dependencies": {
         "url-ast": "^1.0.3",
       },
@@ -89,7 +98,6 @@
         "@asterflow/request": "workspace:../request",
         "@asterflow/response": "workspace:../response",
         "@caeljs/tsh": "^1.1.3",
-        "@types/bun": "latest",
         "fastify": "^5.3.3",
         "zod": "^3.25.62",
       },
@@ -105,6 +113,8 @@
     "@asterflow/adapter": ["@asterflow/adapter@workspace:packages/adapter"],
 
     "@asterflow/core": ["@asterflow/core@workspace:core"],
+
+    "@asterflow/plugin": ["@asterflow/plugin@workspace:packages/plugin"],
 
     "@asterflow/request": ["@asterflow/request@workspace:packages/request"],
 

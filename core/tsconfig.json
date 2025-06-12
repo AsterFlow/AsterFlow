@@ -24,7 +24,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    
 
     "baseUrl": ".",
     "paths": {
@@ -32,6 +31,8 @@
       "@asterflow/request": ["../packages/request/src/index.ts"],
       "@asterflow/response": ["../packages/response/src/index.ts"],
       "@asterflow/adapter": ["../packages/adapter/src/index.ts"],
+      "@asterflow/plugin": ["../packages/plugin/src/index.ts"],
+      "@asterflow/core": ["./src/index.ts"]
     }
   }
 }

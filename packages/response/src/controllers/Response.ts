@@ -86,10 +86,11 @@ export class Response<
   created(data: BM[201]) { return this.clone({ code: 201, data }) }
   noContent(data: BM[204]) { return this.clone({ code: 204, data }) }
   badRequest(data: BM[400]) { return this.clone({ code: 400, data }) }
-  zodError(data: BM[422]) { return this.clone({ code: 422, data }) }
   unauthorized(data: BM[401]) { return this.clone({ code: 401, data }) }
   forbidden(data: BM[403]) { return this.clone({ code: 403, data }) }
   notFound(data: BM[404]) { return this.clone({ code: 404, data }) }
+  validationError(data: BM[422]) { return this.clone({ code: 422, data }) }
+  internalServerError(data: BM[500]) { return this.clone({ code: 500, data }) }
 
   setHeader<Name extends string, Value extends string>(
     name: Name,

@@ -9,15 +9,19 @@ import type { AnySchema, InferSchema } from './schema'
  * Enum for HTTP method types.
  */
 export enum MethodType {
+  all = 'all',
   get = 'get',
   post = 'post',
   put = 'put',
   delete = 'delete',
+  options = 'options',
+  head = 'head',
+  patch = 'patch'
 }
 
+export type AnyMethodHandler = MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>
 export type MethodKeys = keyof typeof MethodType
 
-export type AnyMethodHandler =  { [Method in MethodKeys]?: MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>; }
 export type MethodHandler<
   Path extends string,
   Responder extends Responders,

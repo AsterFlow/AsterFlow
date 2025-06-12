@@ -118,6 +118,7 @@ createServer(async (req, res) => {
 - [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
 - [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
+- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
 
 ## 📄 License
 
