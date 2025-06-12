@@ -10,12 +10,12 @@
   "author": "Ashu11-A",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ashu11-A/AsterFlow.git"
+    "url": "git+https://github.com/AsterFlow/AsterFlow.git"
   },
   "bugs": {
-    "url": "https://github.com/Ashu11-A/AsterFlow/issues"
+    "url": "https://github.com/AsterFlow/AsterFlow/issues"
   },
-  "homepage": "https://github.com/Ashu11-A/AsterFlow",
+  "homepage": "https://github.com/AsterFlow/AsterFlow",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",

@@ -2,14 +2,14 @@
 
 # AsterFlow
 
-![license-info](https://img.shields.io/github/license/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
-![stars-info](https://img.shields.io/github/stars/Ashu11-A/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
+![license-info](https://img.shields.io/github/license/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
+![stars-info](https://img.shields.io/github/stars/AsterFlow/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
 
-![last-commit](https://img.shields.io/github/last-commit/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=b4befe)
-![commit-activity](https://img.shields.io/github/commit-activity/y/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af)
-![code-size](https://img.shields.io/github/languages/code-size/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=b4befe)
+![commit-activity](https://img.shields.io/github/commit-activity/y/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af)
+![code-size](https://img.shields.io/github/languages/code-size/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
 
-![top-language](https://img.shields.io/github/languages/top/Ashu11-A/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
+![top-language](https://img.shields.io/github/languages/top/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
 ![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
 </div>
@@ -20,9 +20,9 @@ AsterFlow is a **modular**, **strongly typed** framework for building HTTP APIs 
 
 ### 📜 History
 
-AsterFlow is a clean rewrite of [base-fastify](https://github.com/Ashu11-A/base-fastify), a project I originally created to improve my own workflow. It evolved substantially as I developed it. The name combines my nickname "Ashu" + "Router" + "Flow" (inspired by TensorFlow). I built it out of frustration with the unnecessary complexity of other frameworks—often you end up writing dozens of type definition files instead of focusing on the routes themselves, with needless modularization that only adds cognitive overhead. AsterFlow simplifies that process, and I hope it makes your life easier too!
+AsterFlow is a clean rewrite of [base-fastify](https://github.com/AsterFlow/base-fastify), a project I originally created to improve my own workflow. It evolved substantially as I developed it. The name combines my nickname "Ashu" + "Router" + "Flow" (inspired by TensorFlow). I built it out of frustration with the unnecessary complexity of other frameworks—often you end up writing dozens of type definition files instead of focusing on the routes themselves, with needless modularization that only adds cognitive overhead. AsterFlow simplifies that process, and I hope it makes your life easier too!
 
-I also toyed with a pseudo-framework called [Kython](https://github.com/Ashu11-A/Kython), which I developed alongside [Drylian](https://github.com/drylian) as an experiment to see who could go further without using AI.
+I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlow/Kython), which I developed alongside [Drylian](https://github.com/drylian) as an experiment to see who could go further without using AI.
 
 ### ✨ Features
 
@@ -254,4 +254,4 @@ If you're exploring alternatives, you might also like:
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/Ashu11-A/AsterFlow/blob/main/LICENSE) for more details.
+MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
