@@ -22,7 +22,7 @@ export function toErrorResponse(err: unknown): Response {
       error: err.name,
       message: err.message,
       // Optionally attach stack in non-prod
-      details: process.env.NODE_ENV !== 'production' ? err.stack : undefined,
+      details: process.env.NODE_ENV !== 'production' ? err.stack : undefined
     }
   } else {
     // Non-Error (string, number, object, etc.)
@@ -30,7 +30,7 @@ export function toErrorResponse(err: unknown): Response {
       statusCode: 500,
       error: 'InternalServerError',
       message: typeof err === 'string' ? err : 'An unexpected error occurred.',
-      details: err,
+      details: err
     }
   }
 
@@ -40,6 +40,6 @@ export function toErrorResponse(err: unknown): Response {
   return new Response().status(payload.statusCode).json({
     error: payload.error,
     message: payload.message,
-    ...(payload.details ? { details: payload.details } : {}),
+    ...(payload.details ? { details: payload.details } : {})
   })
 }

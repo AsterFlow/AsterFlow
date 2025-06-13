@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-import type { AnyPluginHooks, Resolver } from '../types/plugin'
+ 
+import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
+import type { PluginHooks, Resolver } from '../types/plugin'
 
 /**
  * A factory for creating plugins that can be configured and attached to AsterFlow.
@@ -8,37 +9,53 @@ import type { AnyPluginHooks, Resolver } from '../types/plugin'
  */
 export class Plugin<
   Path extends string,
+  Instance extends AnyAsterflow,
   Config extends Record<string, any> = {},
   Context extends Record<string, any> = {},
-  Hooks extends AnyPluginHooks = {}
+  Hooks extends PluginHooks<any, Context[]> = {},
+  Extension extends Record<string, any> = {}
 > {
   public readonly name: Path
   private readonly resolvers: Resolver[]
   public readonly defaultConfig: Partial<Config>
   public readonly hooks: Hooks
+  public instance!: Instance
+  private readonly _extensionFn?: (app: Instance, context: Context) => Extension
 
   private constructor(
     name: Path,
     resolvers: Resolver[],
     hooks: Hooks,
-    defaultConfig: Partial<Config>
+    defaultConfig: Partial<Config>,
+    extensionFn?: (app: Instance, context: Context) => Extension
   ) {
     this.name = name
     this.resolvers = resolvers
     this.hooks = hooks
     this.defaultConfig = defaultConfig
+    this._extensionFn = extensionFn
   }
 
   /**
    * Defines the shape of the configuration and its default values for this plugin.
    */
   withConfig<C extends Record<string, any>>(defaultConfig: C) {
-    return new Plugin<Path, C, Context, Hooks>(
+    return new Plugin<Path, Instance, C, Context, Hooks, Extension>(
       this.name,
       this.resolvers,
       this.hooks,
-      defaultConfig
+      defaultConfig,
+      this._extensionFn
     )
+  }
+  
+  /**
+   * O `defineInstance` agora é mais simples. Ele não precisa mais re-tipar
+   * a classe inteira. Ele só serve para passar o `this` para o `_build`.
+   */
+  defineInstance<Instanced extends AnyAsterflow>(instance: Instanced) {
+    this.instance = instance as any
+    return this
   }
 
   /**
@@ -50,11 +67,12 @@ export class Plugin<
       [key]: value
     })
 
-    return new Plugin<Path, Config, Context & { [K in Key]: Value }, Hooks>(
+    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Value }, Hooks, Extension>(
       this.name,
       [...this.resolvers, resolver],
       this.hooks,
-      this.defaultConfig
+      this.defaultConfig,
+      this._extensionFn
     )
   }
 
@@ -75,11 +93,12 @@ export class Plugin<
       }
     }
 
-    return new Plugin<Path, Config, Context & { [K in Key]: Value }, Hooks>(
+    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Value }, Hooks, Extension>(
       this.name,
       [...this.resolvers, resolver],
       this.hooks,
-      this.defaultConfig
+      this.defaultConfig,
+      this._extensionFn
     )
   }
 
@@ -90,27 +109,61 @@ export class Plugin<
    *
    * @example
    * const routingPlugin = Plugin.create({ name: 'dynamic-routes' })
-   * .on('beforeInitialize', (app, context) => {
-   * // `app` is the AsterFlow instance
-   * const dynamicRouter = createDynamicRouter();
-   * app.controller(dynamicRouter);
-   * });
+   *   .on('beforeInitialize', (app, context) => { })
+   *   .on('beforeInitialize', (app, context) => { });
    */
   on<
-    Event extends keyof AnyPluginHooks,
-    Handler extends NonNullable<AnyPluginHooks[Event]> extends (infer F)[] ? F : never
+    Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Context>,
+    Handler extends NonNullable<
+      PluginHooks<ExtendedAsterflow<Instance>, Context>[Event]
+    > extends (infer F)[]
+      ? F
+      : never
   >(
     event: Event,
     handler: Handler
   ) {
-    if (!this.hooks[event]) this.hooks[event] = [];
-    (this.hooks[event] as any).push(handler)
+    const existingHandlers = (this.hooks[event] as any[]) || []
 
-    return new Plugin<Path, Config, Context, typeof this.hooks>(
+    const newHooks = {
+      ...this.hooks,
+      [event]: [...existingHandlers, handler]
+    }
+
+    type NewHooks = Omit<Hooks, Event> & {
+      [K in Event]: [
+        ...(Hooks extends { [k in Event]: any[] } ? Hooks[K] : []),
+        Handler
+      ]
+    };
+    
+    return new Plugin<Path, Instance, Config, Context, NewHooks, Extension>(
+      this.name,
+      this.resolvers,
+      newHooks as unknown as NewHooks,
+      this.defaultConfig,
+      this._extensionFn
+    )
+  }
+
+  /**
+   * Defines new properties or methods to be added to the AsterFlow instance.
+   * A função recebe a instância do app e o contexto do plugin, e deve retornar um objeto
+   * com as novas propriedades.
+   */
+  extends<E extends Record<string, any>>(
+    extensionFn: (app: Instance, context: Context) => E
+  ) {
+    return new Plugin<Path, Instance, Config, Context, Hooks, Extension & E>(
       this.name,
       this.resolvers,
       this.hooks,
-      this.defaultConfig
+      this.defaultConfig,
+      // Combina a nova função de extensão com qualquer uma existente (se necessário)
+      (app, context) => {
+        const prev = this._extensionFn ? this._extensionFn(app, context) : {} as Extension
+        return { ...prev, ...extensionFn(app, context) } as Extension & E
+      }
     )
   }
 
@@ -128,16 +181,18 @@ export class Plugin<
     return {
       name: this.name,
       context: context as Context,
-      hooks: this.hooks
+      hooks: this.hooks,
+      _extensionFn: this._extensionFn
     }
   }
+
 
   /**
    * Creates a new Plugin instance. This is the entry point for building a plugin.
    */
   public static create<Path extends string>(
     options: { name: Path }
-  ): Plugin<Path, {}, {}, {}> {
-    return new Plugin(options.name, [], {}, {})
+  ): Plugin<Path, AnyAsterflow, {}, {}, {}> {
+    return new Plugin(options.name, [], {}, {}, undefined)
   }
 }

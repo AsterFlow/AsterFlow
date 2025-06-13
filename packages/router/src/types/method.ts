@@ -1,3 +1,4 @@
+import type { AnyAsterflow, AsterFlow } from '@asterflow/core'
 import type { Request } from '@asterflow/request'
 import type { Responders, Response } from '@asterflow/response'
 import type { Analyze, ParsePath } from '@asterflow/url-parser'
@@ -19,7 +20,7 @@ export enum MethodType {
   patch = 'patch'
 }
 
-export type AnyMethodHandler = MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>
+export type AnyMethodHandler = MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>, AsterFlow>
 export type MethodKeys = keyof typeof MethodType
 
 export type MethodHandler<
@@ -27,8 +28,10 @@ export type MethodHandler<
   Responder extends Responders,
   Schema extends AnySchema,
   Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
-  Context extends MiddlewareOutput<Middlewares>
+  Context extends MiddlewareOutput<Middlewares>,
+  Instance extends AnyAsterflow
 > = <RequestType> (args: {
+  instance: Instance
   request: Request<RequestType>
   response: Response<Responder>
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
@@ -43,7 +46,8 @@ export type MethodOptions<
   Schema extends AnySchema,
   Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
-  Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context>
+  Instance extends AnyAsterflow,
+  Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>
 > = {
   path: Path,
   name?: string,

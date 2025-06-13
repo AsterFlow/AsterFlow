@@ -57,7 +57,7 @@ export class Response<
       code: overrides.code !== undefined ? overrides.code : this._status,
       data: overrides.data !== undefined ? overrides.data : this.body,
       header: overrides.header !== undefined ? overrides.header : this.header,
-      cookies: overrides.cookies !== undefined ? overrides.cookies : this.cookies,
+      cookies: overrides.cookies !== undefined ? overrides.cookies : this.cookies
     })
   }
 
@@ -130,7 +130,7 @@ export class Response<
   
     return new globalThis.Response(body, {
       status: this._status as number,
-      headers,
+      headers
     })
   }
 

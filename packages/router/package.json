@@ -19,7 +19,8 @@
   },
   "devDependencies": {
     "@asterflow/request": "workspace:../request",
-    "@asterflow/response": "workspace:../response"
+    "@asterflow/response": "workspace:../response",
+    "@asterflow/core": "workspace:../../core"
   },
   "peerDependencies": {
     "@caeljs/tsh": "^1.1.3",

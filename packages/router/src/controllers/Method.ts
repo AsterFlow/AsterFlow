@@ -1,3 +1,4 @@
+import type { AnyAsterflow } from '@asterflow/core'
 import type { Responders } from '@asterflow/response'
 import { Analyze } from '@asterflow/url-parser'
 import type { MethodHandler, MethodKeys, MethodOptions } from '../types/method'
@@ -12,7 +13,8 @@ export class Method<
   const Schema extends AnySchema = AnySchema,
   const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
   const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
-  const Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context> = MethodHandler<Path, Responder, Schema, Middlewares, Context>,
+  const Instance extends AnyAsterflow = AnyAsterflow,
+  const Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance> = MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>,
 >{
   path: Path
   url: Analyze<Path>
@@ -23,7 +25,7 @@ export class Method<
   use?: Middlewares
   handler: Handler
 
-  constructor (options: MethodOptions<Responder, Path, Method, Schema, Middlewares, Context, Handler>) {
+  constructor (options: MethodOptions<Responder, Path, Method, Schema, Middlewares, Context, Instance, Handler>) {
     this.path = options.path
     this.url = new Analyze(this.path)
     this.method = options.method

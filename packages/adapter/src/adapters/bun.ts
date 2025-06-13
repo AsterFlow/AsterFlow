@@ -22,5 +22,5 @@ export default new Adapter({
     } catch (err) {
       callback?.(err as Error)
     }
-  },
+  }
 })
