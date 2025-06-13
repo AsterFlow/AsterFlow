@@ -1,5 +1,5 @@
 import type { Responders } from '@asterflow/response'
-import { Analyze } from 'url-ast'
+import { Analyze } from '@asterflow/url-parser'
 import type { MethodKeys } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { RouteHandler, RouterOptions } from '../types/router'

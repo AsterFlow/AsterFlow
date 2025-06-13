@@ -127,7 +127,7 @@ aster.controller(route)
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
 - [reminist](https://www.npmjs.com/package/reminist) - Blazing fast, zero-dependency, TypeScript-native router
-- [url-ast](https://www.npmjs.com/package/url-ast) - High-performance typed URL parser with automatic type casting
+- [@asterflow/url-parser](https://www.npmjs.com/package/@asterflow/url-parser) - High-performance typed URL parser with automatic type casting
 - [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
 
 ## 📄 License

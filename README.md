@@ -47,7 +47,7 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlo
 
 ```bash
 # You can use any package manager - npm, pnpm, bun, etc.
-npm install @asterflow/core @asterflow/adapter @asterflow/router @asterflow/request @asterflow/response url-ast reminist
+npm install @asterflow/core
 ```
 
 ### ✨ Features

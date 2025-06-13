@@ -39,7 +39,7 @@
     "@asterflow/plugin": "workspace:../packages/plugin",
     "@asterflow/response": "workspace:../packages/response",
     "@asterflow/router": "workspace:../packages/router",
-    "reminist": "^1.0.5",
-    "url-ast": "^1.0.3"
+    "@asterflow/url-parser": "^2.0.1",
+    "reminist": "^1.0.5"
   }
 }

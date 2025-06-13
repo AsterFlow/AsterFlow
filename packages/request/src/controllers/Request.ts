@@ -1,4 +1,4 @@
-import { Analyze } from 'url-ast'
+import { Analyze } from '@asterflow/url-parser'
 
 export abstract class Request<RequestType>{
   request: RequestType

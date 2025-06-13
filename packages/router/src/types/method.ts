@@ -1,6 +1,6 @@
 import type { Request } from '@asterflow/request'
 import type { Responders, Response } from '@asterflow/response'
-import type { Analyze, ParsePath } from 'url-ast'
+import type { Analyze, ParsePath } from '@asterflow/url-parser'
 import type { Middleware } from '../controllers/Middleware'
 import type { AnyMiddleware, MiddlewareOutput } from './mindleware'
 import type { AnySchema, InferSchema } from './schema'

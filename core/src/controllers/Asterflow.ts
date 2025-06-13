@@ -16,7 +16,7 @@ import {
   type MethodKeys
 } from '@asterflow/router'
 import { Reminist } from 'reminist'
-import { Analyze, ErrorLog } from 'url-ast'
+import { Analyze, ErrorLog } from '@asterflow/url-parser'
 import type { SafeParseReturnType } from 'zod'
 import type { AsterFlowOptions } from '../types/asterflow'
 import type { ExtractPaths, InferPath, NormalizePath } from '../types/paths'
