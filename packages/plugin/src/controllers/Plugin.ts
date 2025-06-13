@@ -10,17 +10,17 @@ export class Plugin<
   Path extends string,
   Config extends Record<string, any> = {},
   Context extends Record<string, any> = {},
-  THooks extends AnyPluginHooks = {}
+  Hooks extends AnyPluginHooks = {}
 > {
   public readonly name: Path
   private readonly resolvers: Resolver[]
   public readonly defaultConfig: Partial<Config>
-  public readonly hooks: THooks
+  public readonly hooks: Hooks
 
   private constructor(
     name: Path,
     resolvers: Resolver[],
-    hooks: THooks,
+    hooks: Hooks,
     defaultConfig: Partial<Config>
   ) {
     this.name = name
@@ -33,7 +33,7 @@ export class Plugin<
    * Defines the shape of the configuration and its default values for this plugin.
    */
   withConfig<C extends Record<string, any>>(defaultConfig: C) {
-    return new Plugin<Path, C, Context, THooks>(
+    return new Plugin<Path, C, Context, Hooks>(
       this.name,
       this.resolvers,
       this.hooks,
@@ -50,7 +50,7 @@ export class Plugin<
       [key]: value
     })
 
-    return new Plugin<Path, Config, Context & { [K in Key]: Value }, THooks>(
+    return new Plugin<Path, Config, Context & { [K in Key]: Value }, Hooks>(
       this.name,
       [...this.resolvers, resolver],
       this.hooks,
@@ -75,7 +75,7 @@ export class Plugin<
       }
     }
 
-    return new Plugin<Path, Config, Context & { [K in Key]: Value }, THooks>(
+    return new Plugin<Path, Config, Context & { [K in Key]: Value }, Hooks>(
       this.name,
       [...this.resolvers, resolver],
       this.hooks,
