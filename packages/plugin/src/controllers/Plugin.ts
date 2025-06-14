@@ -12,7 +12,7 @@ export class Plugin<
   Instance extends AnyAsterflow,
   Config extends Record<string, any> = {},
   Context extends Record<string, any> = {},
-  Hooks extends PluginHooks<any, Context[]> = {},
+  Hooks extends PluginHooks<any, Context[], any> = {},
   Extension extends Record<string, any> = {}
 > {
   public readonly name: Path
@@ -39,7 +39,7 @@ export class Plugin<
   /**
    * Defines the shape of the configuration and its default values for this plugin.
    */
-  withConfig<C extends Record<string, any>>(defaultConfig: C) {
+  config<C extends Record<string, any>>(defaultConfig: C) {
     return new Plugin<Path, Instance, C, Context, Hooks, Extension>(
       this.name,
       this.resolvers,
@@ -62,7 +62,7 @@ export class Plugin<
    * Adds a new static value to the plugin's context (decoration).
    */
   decorate<Key extends string, Value>(key: Key, value: Value) {
-    const resolver: Resolver = (_config, context) => ({
+    const resolver: Resolver = async (_config, context) => ({
       ...context,
       [key]: value
     })
@@ -82,18 +82,18 @@ export class Plugin<
    */
   derive<Key extends string, Value>(
     key: Key,
-    resolverFn: (context: Context & Config) => Value
+    resolverFn: (context: Context & Config) => Value | Promise<Value>
   ) {
-    const resolver: Resolver = (config, context) => {
+    const resolver: Resolver = async (config, context) => {
       const fullContext = { ...context, ...config }
-      const derivedValue = resolverFn(fullContext as Context & Config)
+      const derivedValue = await resolverFn(fullContext as Context & Config)
       return {
         ...context,
         [key]: derivedValue
       }
     }
 
-    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Value }, Hooks, Extension>(
+    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Awaited<Value> }, Hooks, Extension>(
       this.name,
       [...this.resolvers, resolver],
       this.hooks,
@@ -113,9 +113,9 @@ export class Plugin<
    *   .on('beforeInitialize', (app, context) => { });
    */
   on<
-    Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Context>,
+    Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>,
     Handler extends NonNullable<
-      PluginHooks<ExtendedAsterflow<Instance>, Context>[Event]
+      PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>[Event]
     > extends (infer F)[]
       ? F
       : never
@@ -124,7 +124,6 @@ export class Plugin<
     handler: Handler
   ) {
     const existingHandlers = (this.hooks[event] as any[]) || []
-
     const newHooks = {
       ...this.hooks,
       [event]: [...existingHandlers, handler]
@@ -159,7 +158,6 @@ export class Plugin<
       this.resolvers,
       this.hooks,
       this.defaultConfig,
-      // Combina a nova função de extensão com qualquer uma existente (se necessário)
       (app, context) => {
         const prev = this._extensionFn ? this._extensionFn(app, context) : {} as Extension
         return { ...prev, ...extensionFn(app, context) } as Extension & E
@@ -171,28 +169,35 @@ export class Plugin<
    * Builds the final context and hooks from the provided configuration.
    */
   _build(config: any) {
-    const finalConfig = { ...this.defaultConfig, ...config } as Config
-
-    let context: Record<string, any> = {}
-    for (const resolver of this.resolvers) {
-      context = resolver(finalConfig, context)
-    }
+    const finalConfig = { ...this.defaultConfig, ...config } as Config & Context
 
     return {
       name: this.name,
-      context: context as Context,
+      // O contexto inicial é a própria configuração.
+      context: { ...finalConfig }, 
       hooks: this.hooks,
-      _extensionFn: this._extensionFn
+      _extensionFn: this._extensionFn,
+      // Retorna os resolvers para execução posterior.
+      resolvers: this.resolvers 
     }
   }
-
 
   /**
    * Creates a new Plugin instance. This is the entry point for building a plugin.
    */
-  public static create<Path extends string>(
+  static create<Path extends string, Asterflow extends AnyAsterflow>(
     options: { name: Path }
-  ): Plugin<Path, AnyAsterflow, {}, {}, {}> {
+  ): Plugin<Path, Asterflow, {}, {}, {}> {
     return new Plugin(options.name, [], {}, {}, undefined)
+  }
+
+  static instance<T extends AnyAsterflow>() {
+    return {
+      create: <Path extends string>(options: { name: Path }): Plugin<Path, T, {}, {}, {}, {}> => {
+        return new Plugin<Path, T, {}, {}, {}, {}>(
+          options.name, [], {}, {}, undefined
+        )
+      }
+    }
   }
 }

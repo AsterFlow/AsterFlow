@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/core",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -31,7 +31,7 @@
     "exemple": "bun run --inspect-brk=ws://localhost:6499 src/exemple.ts"
   },
   "peerDependencies": {
-    "zod": "^3.25.62",
+    "zod": "^3.25.63",
     "typescript": "^5.8.3"
   },
   "dependencies": {

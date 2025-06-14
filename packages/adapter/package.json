@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/adapter",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
@@ -31,7 +31,7 @@
     "@asterflow/router": "workspace:../router"
   },
   "peerDependencies": {
-    "fastify": "^5.3.3",
+    "fastify": "^5.4.0",
     "express": "^5.1.0",
     "typescript": "^5.8.3"
   },

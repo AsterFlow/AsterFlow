@@ -6,10 +6,10 @@ import { AsterFlow } from './index'
 const server = fastify()
 const plugin = Plugin
   .create({ name: 'auth' })
-  .withConfig({ path: process.cwd() })
+  .config({ path: process.cwd() })
   .derive('auth', (ctx) => ({ path: ctx.path }))
   .decorate('token', '1234')
-  .extends(() => {
+  .extends((app) => {
     return {
       getCurrentUser: (id: string) => ({ id, name: 'John Doe' })
     }

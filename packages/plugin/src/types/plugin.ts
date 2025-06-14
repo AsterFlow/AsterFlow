@@ -1,5 +1,5 @@
  
-import type { AnyAsterflow } from '@asterflow/core'
+import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
 import type { Request } from '@asterflow/request'
 import type { Response } from '@asterflow/response'
 import type { Plugin } from '../controllers/Plugin'
@@ -17,8 +17,9 @@ export type ResolvedPlugin<P extends AnyPlugin> = P extends Plugin<
 > ? {
   name: Path,
   context: Ctx,
-  hooks: PluginHooks<any, Ctx>, // Usamos 'any' para o app aqui para quebrar a recursão
-  _extensionFn?: (app: any, context: Ctx) => Ext
+  hooks: PluginHooks<any, Ctx, Ext>,
+  _extensionFn?: (app: any, context: Ctx) => Ext,
+  resolvers: Resolver[] 
 } : never;
 
 /**
@@ -36,10 +37,11 @@ export type ConfigArgument<P extends AnyPlugin>
  */
 export type PluginHooks<
   Instance extends AnyAsterflow,
-  Context extends Record<string, any>
+  Context extends Record<string, any>,
+  Extension extends Record<string, any> = {}
 > = {
-  beforeInitialize?: ((app: Instance, context: Context) => void | Promise<void>)[]
-  afterInitialize?: ((app: Instance, context: Context) => void | Promise<void>)[]
+  beforeInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
+  afterInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
   onRequest?: ((request: Request<unknown>, response: Response, context: Context) => void | Promise<void>)[]
   onResponse?: ((request: Request<unknown>, response: Response, context: Context) => void | Promise<void>)[]
 }
@@ -48,4 +50,4 @@ export type PluginHooks<
  * Represents a function that resolves a part of the plugin's context.
  * @internal
  */
-export type Resolver = (config: any, context: any) => Record<string, any>
+export type Resolver = (config: any, context: any) => Promise<Record<string, any>>

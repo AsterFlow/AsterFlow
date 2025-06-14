@@ -120,18 +120,17 @@ class _AsterFlow<
       }
     }
 
-    const notFoundResponse = () =>
-      response.notFound({
-        statusCode: 404,
-        code: 'NOT_FOUND',
-        message: `Unable to find route: ${request.getPathname()}`
-      })
+    const notFound = () => response.notFound({
+      statusCode: 404,
+      code: 'NOT_FOUND',
+      message: `Unable to find route: ${request.getPathname()}`
+    })
 
     const method = request.getMethod().toLowerCase() as MethodType | undefined
-    if (!method) return notFoundResponse()
+    if (!method) return notFound()
 
     const routeMatch = this.reminist.find(method, request.url.getPathname())
-    if (!routeMatch?.node?.store) return notFoundResponse()
+    if (!routeMatch?.node?.store) return notFound()
 
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
     request.url = request.url.withParser(routeEntry.route.url) as any
@@ -157,7 +156,7 @@ class _AsterFlow<
       return responseData
     }
 
-    return notFoundResponse()
+    return notFound()
   }
   
   /**
@@ -230,7 +229,7 @@ class _AsterFlow<
     const pluginInstance = plugin.defineInstance(this)
     const builtPlugin = pluginInstance._build(config);
     
-    (this.plugins as Record<string, any>)[builtPlugin.name] = builtPlugin as ResolvedPlugin<P>
+    (this.plugins as Record<string, any>)[builtPlugin.name] = builtPlugin
     
     if (builtPlugin.hooks.onRequest) this.onRequestPlugins.push(builtPlugin)
     if (builtPlugin.hooks.onResponse) this.onResponsePlugins.push(builtPlugin)
@@ -330,11 +329,31 @@ class _AsterFlow<
   }
 
   /**
+   * Itera sobre todos os plugins registrados e executa seus resolvers
+   * de forma assíncrona, construindo o contexto de cada um.
+   */
+  private async resolvePluginContexts(): Promise<void> {
+    for (const pluginName in this.plugins) {
+      const plugin = this.plugins[pluginName]
+      if (!plugin) continue
+
+      if (plugin.resolvers) {
+        for (const resolver of plugin.resolvers) {
+          const newProps = await resolver(plugin.context, plugin.context)
+          Object.assign(plugin.context, newProps)
+        }
+      }
+    }
+  }
+
+  /**
    * Starts the application server, triggering `beforeInitialize` and `afterInitialize` lifecycle hooks.
    * @param {Parameters<Drive['listen']>} args - Arguments passed to the underlying driver's `listen` method.
    * @returns {Promise<any>} The started server.
    */
   async listen(...args: Parameters<Drive['listen']>) {
+    await this.resolvePluginContexts()
+
     await this.runHooks('beforeInitialize')
     const server = await this.driver.listen(...args)
     await this.runHooks('afterInitialize')
