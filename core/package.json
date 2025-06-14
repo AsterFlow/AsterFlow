@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",

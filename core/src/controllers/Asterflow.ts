@@ -395,7 +395,7 @@ class _AsterFlow<
   }
 }
 
-interface IAsterflow<
+export interface IAsterflow<
   Routers extends AnyReminist,
   Plugins extends Record<string, ResolvedPlugin<AnyPlugin>>,
   Middlewares extends readonly AnyMiddleware[],
