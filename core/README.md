@@ -4,7 +4,7 @@
 
 ![license-info](https://img.shields.io/github/license/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
 ![stars-info](https://img.shields.io/github/stars/AsterFlow/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
-![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=packages%2Fcore&style=for-the-badge&colorA=302D41&colorB=b4befe)
+![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=core&style=for-the-badge&colorA=302D41&colorB=b4befe)
 
 ![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
