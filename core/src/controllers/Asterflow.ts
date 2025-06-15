@@ -151,12 +151,6 @@ class _AsterFlow<
   /**
    * Adds a group of controllers with a common `basePath`.
    * Each route within the provided controllers will be prefixed with the `basePath`.
-   * @template BasePath - The type of the base path string.
-   * @template Routes - The type of the `AnyRouter` array.
-   * @param {object} options - The options for the middleware.
-   * @param {BasePath} options.basePath - The base path for the controllers.
-   * @param {Routes} options.controllers - An array of controllers to be added.
-   * @returns {AsterFlow<Reminist<any, any, any>, Plugins, Middlewares, Drive, Extension>} The current AsterFlow instance, with updated route types.
    */
   middleware<
     BasePath extends string,
@@ -185,9 +179,6 @@ class _AsterFlow<
   /**
    * Adds a single controller to AsterFlow.
    * The controller's path is normalized to be relative to the root.
-   * @template Route - The type of the `AnyRouter` to be added.
-   * @param {Route} router - The router object to be added.
-   * @returns {AsterFlow<Reminist<any, any, any>, Plugins, Middlewares, Drive, Extension>} The current AsterFlow instance, with updated route types.
    */
   controller<Route extends AnyRouter>(router: Route): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
     const path = joinPaths('/', router.url.getPathname())
@@ -211,10 +202,6 @@ class _AsterFlow<
   /**
    * Registers a plugin and its configuration with the AsterFlow instance.
    * Applies any instance extensions defined by the plugin.
-   * @template P - The type of the plugin to be used.
-   * @param {P} plugin - The plugin object to be registered.
-   * @param {ConfigArgument<P>} config - The configuration for the plugin.
-   * @returns {AsterFlow<Routers, Plugins & { [K in P['name']]: ResolvedPlugin<P> }, Middlewares, Drive, Extension & InferPluginExtension<P>>} The current AsterFlow instance, with updated plugin and extension types.
    */
   use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>): AsterFlow<Drive, Routers, Plugins & { [K in P['name']]: ResolvedPlugin<P> }, Middlewares, Extension & InferPluginExtension<P>> {
     const pluginInstance = plugin.defineInstance(this)
@@ -334,8 +321,6 @@ class _AsterFlow<
 
   /**
    * Executes the hook handlers for a specific hook name.
-   * @param {'beforeInitialize' | 'afterInitialize'} hookName - The name of the hook to be executed.
-   * @returns {Promise<void>} A promise that resolves when all hook handlers have been executed.
    */
   private async runHooks(hookName: 'beforeInitialize' | 'afterInitialize'): Promise<void> {
     const plugins = this[`${hookName}Plugins`]
@@ -365,11 +350,11 @@ class _AsterFlow<
 }
 
 export type AsterFlow<
-  Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
-  Routers extends AnyReminist = AnyReminist,
-  Plugins extends AnyPlugins = {},
-  Middlewares extends readonly AnyMiddleware[] = [],
-  Extension extends Record<string, any> = {}
+  Drive extends Adapter<Runtime>,
+  Routers extends AnyReminist,
+  Plugins extends AnyPlugins,
+  Middlewares extends readonly AnyMiddleware[],
+  Extension extends Record<string, any>
 > = _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension> & Extension
 
 export const AsterFlow: {
