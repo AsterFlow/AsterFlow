@@ -13,12 +13,12 @@
     "@eslint/js": "^9.29.0",
     "@types/bun": "latest",
     "@types/semver": "^7.7.0",
-    "dts-bundle-generator": "^9.5.1",
     "eslint": "^9.29.0",
     "glob": "^11.0.3",
     "globals": "^16.2.0",
     "json5": "^2.2.3",
     "semver": "^7.7.2",
+    "tsup": "^8.5.0",
     "typescript-eslint": "^8.34.0"
   },
   "peerDependencies": {
@@ -26,8 +26,5 @@
   },
   "trustedDependencies": [
     "esbuild"
-  ],
-  "dependencies": {
-    "esbuild": "^0.25.5"
-  }
+  ]
 }

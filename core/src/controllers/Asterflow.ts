@@ -45,7 +45,6 @@ class _AsterFlow<
   const Middlewares extends readonly AnyMiddleware[] = [],
   const Extension extends Record<string, any> = {}
 > {
-  
   readonly driver: Drive
   readonly reminist: Routers = new Reminist({ keys: Object.keys(MethodType) }) as Routers
   readonly middlewares: Middlewares = [] as unknown as Middlewares
