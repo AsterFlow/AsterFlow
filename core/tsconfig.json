@@ -27,11 +27,7 @@
 
     "baseUrl": ".",
     "paths": {
-      "@asterflow/router": ["../packages/router/src/index.ts"],
-      "@asterflow/request": ["../packages/request/src/index.ts"],
-      "@asterflow/response": ["../packages/response/src/index.ts"],
-      "@asterflow/adapter": ["../packages/adapter/src/index.ts"],
-      "@asterflow/plugin": ["../packages/plugin/src/index.ts"],
+      "@asterflow/*": ["../packages/*/src/index.ts"],
       "@asterflow/core": ["./src/index.ts"]
     }
   }

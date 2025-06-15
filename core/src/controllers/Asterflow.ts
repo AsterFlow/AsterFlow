@@ -27,7 +27,7 @@ import {
 } from '@asterflow/router'
 import { Analyze, ErrorLog } from '@asterflow/url-parser'
 import { Reminist } from 'reminist'
-import type { AnyAsterflow, AsterFlowOptions } from '../types/asterflow'
+import type { AsterFlowOptions } from '../types/asterflow'
 import type { ExtractPaths, InferPath, NormalizePath } from '../types/paths'
 import type { MergedPluginContexts } from '../types/plugin'
 import type { AnyReminist, InferReministContext, InferReministPath } from '../types/reminist'
@@ -39,15 +39,16 @@ import type {
 import { joinPaths } from '../utils/parser'
 
 class _AsterFlow<
+  const Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
   const Routers extends AnyReminist = AnyReminist,
   const Plugins extends Record<string, ResolvedPlugin<AnyPlugin>> = {},
   const Middlewares extends readonly AnyMiddleware[] = [],
-  const Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
   const Extension extends Record<string, any> = {}
-> implements IAsterflow<Routers, Plugins, Middlewares, Drive, Extension> {
+> {
   
   readonly driver: Drive
-  readonly reminist: Routers = Reminist.create({ keys: Object.keys(MethodType) }).withData() as Routers
+  readonly reminist: Routers = new Reminist({ keys: Object.keys(MethodType) }) as Routers
+  readonly middlewares: Middlewares = [] as unknown as Middlewares
   
   plugins: Plugins = {} as Plugins
   private readonly onRequestPlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
@@ -55,7 +56,6 @@ class _AsterFlow<
   private readonly beforeInitializePlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
   private readonly afterInitializePlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
   
-  readonly middlewares: Middlewares = [] as unknown as Middlewares
 
   constructor(options?: AsterFlowOptions<Drive>) {
     this.driver = (options?.driver ?? adapters.node) as Drive
@@ -65,20 +65,14 @@ class _AsterFlow<
   /**
    * Executes a route handler, processing the request and response.
    * Performs schema validation, if present, and invokes the route handler.
-   * @param {RouteEntry<string, AnyRouter>} routeEntry - The route entry containing the route and additional information.
-   * @param {Request<any>} request - The received request object.
-   * @param {Response} response - The response object to be modified.
-   * @returns {Promise<any | null>} The result of the route handler or `null` if no handler exists.
    */
   async executeHandler(routeEntry: RouteEntry<string, AnyRouter>, request: Request<any>, response: Response) {
     const { route } = routeEntry
     const method = request.getMethod().toLowerCase() as MethodType
-  
     const handler = route instanceof Method ? route.handler : route.methods[method]
     const schema = route instanceof Method ? route.schema : route.schema?.[method]
   
     if (!handler) return null
-  
     if (schema) {
       const schemaResult = schema.safeParse(request.getBody())
       if (!schemaResult.success) {
@@ -91,8 +85,7 @@ class _AsterFlow<
       response.send(schemaResult.data)
     }
   
-    const pluginContext = Object.values(this.plugins).reduce((acc, plugin) => ({ ...acc, ...plugin.context }), {})
-  
+    const pluginContext = Object.values(this.plugins).reduce((acc, plugin) => ({ ...acc, ...plugin.context }), {}) as MergedPluginContexts<Plugins>
     const context = {
       instance: this,
       request,
@@ -100,7 +93,7 @@ class _AsterFlow<
       url: request.url,
       schema: request.getBody(),
       middleware: {},
-      plugins: pluginContext as MergedPluginContexts<Plugins>
+      plugins: pluginContext
     }
   
     return handler(context)
@@ -109,11 +102,8 @@ class _AsterFlow<
   /**
    * Handles incoming requests, executing `onRequest` and `onResponse` plugin hooks.
    * Finds the matching route and executes its handler. Manages errors and "not found" responses.
-   * @param {Request<any>} request - The incoming request object.
-   * @param {Response} response - The response object to be modified.
-   * @returns {Promise<any>} The final processed response.
    */
-  private async handleRequest(request: Request<any>, response: Response) {
+  private async handleRequest(request: Request<any>, response: Response): Promise<any> {
     for (const plugin of this.onRequestPlugins) {
       for (const handler of plugin.hooks.onRequest!) {
         await handler(request, response, plugin.context)
@@ -172,13 +162,14 @@ class _AsterFlow<
   middleware<
     BasePath extends string,
     const Routes extends readonly AnyRouter[]
-  >(options: { basePath: BasePath; controllers: Routes }) {
+  >(options: { basePath: BasePath; controllers: Routes }): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
     for (const route of options.controllers) {
       const path = joinPaths(options.basePath, route.url.getPathname())
       this.addRouteEntry(route, path)
     }
 
     return this as unknown as AsterFlow<
+      Drive,
       Reminist<
         InferReministPath<Routers> extends string[]
           ? [...InferReministPath<Routers>, ...ExtractPaths<BasePath, Routes>]
@@ -188,7 +179,7 @@ class _AsterFlow<
           : BuildRoutesContext<BasePath, Routes>,
         MethodKeys[]
       >,
-      Plugins, Middlewares, Drive, Extension
+      Plugins, Middlewares, Extension
     >
   }
 
@@ -199,11 +190,12 @@ class _AsterFlow<
    * @param {Route} router - The router object to be added.
    * @returns {AsterFlow<Reminist<any, any, any>, Plugins, Middlewares, Drive, Extension>} The current AsterFlow instance, with updated route types.
    */
-  controller<Route extends AnyRouter>(router: Route) {
+  controller<Route extends AnyRouter>(router: Route): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
     const path = joinPaths('/', router.url.getPathname())
     this.addRouteEntry(router, path)
 
     return this as unknown as AsterFlow<
+      Drive,
       Reminist<
         InferReministPath<Routers> extends string[]
           ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
@@ -213,7 +205,7 @@ class _AsterFlow<
           : BuildRouteContext<Route>,
         MethodKeys[]
       >,
-      Plugins, Middlewares, Drive, Extension
+      Plugins, Middlewares, Extension
     >
   }
 
@@ -225,7 +217,7 @@ class _AsterFlow<
    * @param {ConfigArgument<P>} config - The configuration for the plugin.
    * @returns {AsterFlow<Routers, Plugins & { [K in P['name']]: ResolvedPlugin<P> }, Middlewares, Drive, Extension & InferPluginExtension<P>>} The current AsterFlow instance, with updated plugin and extension types.
    */
-  use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>) {
+  use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>): AsterFlow<Drive, Routers, Plugins & { [K in P['name']]: ResolvedPlugin<P> }, Middlewares, Extension & InferPluginExtension<P>> {
     const pluginInstance = plugin.defineInstance(this)
     const builtPlugin = pluginInstance._build(config);
     
@@ -242,10 +234,10 @@ class _AsterFlow<
     }
     
     return this as unknown as AsterFlow<
+      Drive,
       Routers,
       Plugins & { [K in P['name']]: ResolvedPlugin<P> },
       Middlewares,
-      Drive,
       Extension & InferPluginExtension<P>
     >
   }
@@ -253,15 +245,6 @@ class _AsterFlow<
   /**
    * Creates and adds a new router to the AsterFlow instance.
    * A router can contain multiple method handlers for different HTTP verbs.
-   * @template Responder - The type of available responders.
-   * @template Path - The type of the route path string.
-   * @template Schema - The type of the dynamic schema for methods.
-   * @template Middlewares - The type of the array of middlewares.
-   * @template Context - The type of the output context of the middlewares.
-   * @template Routers - The type of the route handlers for methods.
-   * @template Route - The type of the router instance.
-   * @param {RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>} options - Options for configuring the router.
-   * @returns {AsterFlow<Reminist<any, any, any>, Plugins, Middlewares, Drive, Extension>} The current AsterFlow instance, with updated route types.
    */
   router<
   Responder extends Responders,
@@ -271,36 +254,27 @@ class _AsterFlow<
   const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
   const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> } = { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
   const Route extends Router<Responder, Path, Schema, Middlewares, Context, Routers> = Router<Responder, Path, Schema, Middlewares, Context, Routers>
-  >(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>) {
+  >(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
     this.controller(new Router(options))
+
     return this as unknown as AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-        : [NormalizePath<InferPath<Route>>],
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRouteContext<Route>
-        : BuildRouteContext<Route>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
+      Drive,
+      Reminist<
+        InferReministPath<Routers> extends string[]
+          ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
+          : [NormalizePath<InferPath<Route>>],
+        InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
+          ? InferReministContext<Routers> & BuildRouteContext<Route>
+          : BuildRouteContext<Route>,
+        MethodKeys[]
+      >,
+      Plugins, Middlewares, Extension
+    >
   }
 
   /**
    * Creates and adds a new method handler (route) to the AsterFlow instance.
    * Defines a specific route for an HTTP method (GET, POST, etc.).
-   * @template Responder - The type of available responders.
-   * @template Path - The type of the route path string.
-   * @template Methoder - The type of the HTTP method (e.g., 'GET', 'POST').
-   * @template Schema - The type of the schema for the method.
-   * @template Middlewares - The type of the array of middlewares for the method.
-   * @template Context - The type of the output context of the middlewares.
-   * @template Instance - The type of the AsterFlow instance.
-   * @template Handler - The type of the route handler.
-   * @template Route - The type of the method (route) instance.
-   * @param {MethodOptions<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>} options - Options for configuring the method.
-   * @returns {AsterFlow<Reminist<any, any, any>, Plugins, Middlewares, Drive, Extension>} The current AsterFlow instance, with updated route types.
    */
   method<
     Responder extends Responders,
@@ -309,23 +283,25 @@ class _AsterFlow<
     const Schema extends AnySchema,
     const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
     const Context extends MiddlewareOutput<Middlewares>,
-    const Instance extends IAsterflow<Routers, Plugins, Middlewares, Drive, Extension>,
+    const Instance extends _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension>,
     const Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>,
     const Route extends Method<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>,
-  >(options: MethodOptions<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>) {
+  >(options: MethodOptions<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
     this.controller(new Method(options))
+
     return this as unknown as AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-        : [NormalizePath<InferPath<Route>>],
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRouteContext<Route>
-        : BuildRouteContext<Route>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
+      Drive,
+      Reminist<
+        InferReministPath<Routers> extends string[]
+          ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
+          : [NormalizePath<InferPath<Route>>],
+        InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
+          ? InferReministContext<Routers> & BuildRouteContext<Route>
+          : BuildRouteContext<Route>,
+        MethodKeys[]
+      >,
+      Plugins, Middlewares, Extension
+    >
   }
 
   /**
@@ -348,12 +324,9 @@ class _AsterFlow<
 
   /**
    * Starts the application server, triggering `beforeInitialize` and `afterInitialize` lifecycle hooks.
-   * @param {Parameters<Drive['listen']>} args - Arguments passed to the underlying driver's `listen` method.
-   * @returns {Promise<any>} The started server.
    */
   async listen(...args: Parameters<Drive['listen']>) {
     await this.resolvePluginContexts()
-
     await this.runHooks('beforeInitialize')
     const server = await this.driver.listen(...args)
     await this.runHooks('afterInitialize')
@@ -365,7 +338,7 @@ class _AsterFlow<
    * @param {'beforeInitialize' | 'afterInitialize'} hookName - The name of the hook to be executed.
    * @returns {Promise<void>} A promise that resolves when all hook handlers have been executed.
    */
-  private async runHooks(hookName: 'beforeInitialize' | 'afterInitialize') {
+  private async runHooks(hookName: 'beforeInitialize' | 'afterInitialize'): Promise<void> {
     const plugins = this[`${hookName}Plugins`]
     for (const plugin of plugins) {
       const handlers = plugin.hooks[hookName]
@@ -380,11 +353,8 @@ class _AsterFlow<
   /**
    * Adds a route entry to Reminist, associating it with specific HTTP methods.
    * Normalizes the route path and registers it for each supported method.
-   * @param {AnyRouter} route - The router or method object to be added.
-   * @param {string} path - The path of the route to be registered.
-   * @returns {void}
    */
-  private addRouteEntry(route: AnyRouter, path: string) {
+  private addRouteEntry(route: AnyRouter, path: string): void {
     route.url = new Analyze(path)
     const methods = route instanceof Method ? [route.method] : Object.keys(route.methods)
     const routeEntry: RouteEntry<string, AnyRouter> = { path, route, methods }
@@ -395,120 +365,16 @@ class _AsterFlow<
   }
 }
 
-export interface IAsterflow<
-  Routers extends AnyReminist,
-  Plugins extends Record<string, ResolvedPlugin<AnyPlugin>>,
-  Middlewares extends readonly AnyMiddleware[],
-  Drive extends Adapter<Runtime>,
-  Extension extends Record<string, any>
-> {
-  readonly driver: Drive
-  reminist: Routers
-  plugins: Plugins
-  readonly middlewares: Middlewares
-
-  middleware<BasePath extends string, const Routes extends readonly AnyRouter[]>(
-    options: { basePath: BasePath; controllers: Routes }
-  ): AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, ...ExtractPaths<BasePath, Routes>]
-        : ExtractPaths<BasePath, Routes>,
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRoutesContext<BasePath, Routes>
-        : BuildRoutesContext<BasePath, Routes>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
-
-  controller<Route extends AnyRouter>(
-    router: Route
-  ): AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-        : [NormalizePath<InferPath<Route>>],
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRouteContext<Route>
-        : BuildRouteContext<Route>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
-
-  use<P extends AnyPlugin>(
-    plugin: P, config: ConfigArgument<P>
-  ): AsterFlow<
-    Routers,
-    Plugins & { [K in P['name']]: ResolvedPlugin<P> },
-    Middlewares,
-    Drive,
-    Extension & InferPluginExtension<P>
-  >
-
-  router<
-  Responder extends Responders,
-  const Path extends string = string,
-  const Schema extends SchemaDynamic<MethodKeys> = SchemaDynamic<MethodKeys>,
-  const Middlewares extends readonly AnyMiddleware[] = [],
-  const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
-  const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> } = { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
-  const Route extends Router<Responder, Path, Schema, Middlewares, Context, Routers> = Router<Responder, Path, Schema, Middlewares, Context, Routers>
-  >(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>): AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-        : [NormalizePath<InferPath<Route>>],
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRouteContext<Route>
-        : BuildRouteContext<Route>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
-
-  method<
-    Responder extends Responders,
-    const Path extends string,
-    const Methoder extends MethodKeys,
-    const Schema extends AnySchema,
-    const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
-    const Context extends MiddlewareOutput<Middlewares>,
-    const Instance extends IAsterflow<Routers, Plugins, Middlewares, Drive, Extension>,
-    const Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>,
-    const Route extends Method<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>
-  >(options: MethodOptions<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>): AsterFlow<
-    Reminist<
-      InferReministPath<Routers> extends string[]
-        ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-        : [NormalizePath<InferPath<Route>>],
-      InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
-        ? InferReministContext<Routers> & BuildRouteContext<Route>
-        : BuildRouteContext<Route>,
-      MethodKeys[]
-    >,
-    Plugins, Middlewares, Drive, Extension
-  >
-
-  listen(...args: Parameters<Drive['listen']>): Promise<any>
-}
-
 export type AsterFlow<
+  Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
   Routers extends AnyReminist = AnyReminist,
   Plugins extends AnyPlugins = {},
   Middlewares extends readonly AnyMiddleware[] = [],
-  Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
   Extension extends Record<string, any> = {}
-> = IAsterflow<Routers, Plugins, Middlewares, Drive, Extension> & Extension
+> = _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension> & Extension
 
 export const AsterFlow: {
   new <Drive extends Adapter<Runtime> = Adapter<Runtime.Node>>(
     options?: AsterFlowOptions<Drive>
-  ): AsterFlow<AnyReminist, {}, [], Drive, {}>
+  ): AsterFlow<Drive, AnyReminist, {}, [], {}>
 } = _AsterFlow
-
-export type ExtendedAsterflow<AF extends AnyAsterflow> =
-  AF extends _AsterFlow<any, any, any, any, infer E>
-    ? AF & E
-    : AF

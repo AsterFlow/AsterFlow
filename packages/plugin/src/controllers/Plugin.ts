@@ -54,7 +54,7 @@ export class Plugin<
    * a classe inteira. Ele só serve para passar o `this` para o `_build`.
    */
   defineInstance<Instanced extends AnyAsterflow>(instance: Instanced) {
-    this.instance = instance as any
+    this.instance = instance as unknown as Instance
     return this
   }
 

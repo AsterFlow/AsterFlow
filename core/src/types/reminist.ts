@@ -14,8 +14,6 @@ export type AnyReminist = Reminist<
 
 /**
  * Infers the paths from a Reminist instance.
- * @template T - The type of the Reminist instance.
- * @returns The type of the Reminist paths.
  */
 export type InferReministPath<T> = T extends Reminist<infer P, any, any>
   ? P
@@ -23,8 +21,6 @@ export type InferReministPath<T> = T extends Reminist<infer P, any, any>
 
 /**
  * Infers the context from a Reminist instance.
- * @template T - The type of the Reminist instance.
- * @returns The type of the Reminist context.
  */
 export type InferReministContext<T> = T extends Reminist<any, infer C, any>
   ? C
@@ -33,7 +29,6 @@ export type InferReministContext<T> = T extends Reminist<any, infer C, any>
 /**
  * Reminist context that preserves specific route information.
  * Each path maps to its specific typed route.
- * @template PathsAndRoutes - A record where keys are paths and values are router objects (`AnyRouter`).
  */
 export type ReministContext<
   PathsAndRoutes extends Record<string, AnyRouter>
