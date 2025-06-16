@@ -1,7 +1,7 @@
-import { adapters, type Adapter, type Runtime } from '@asterflow/adapter'
+import { adapters, Runtime, type Adapter, type AnyAdapter } from '@asterflow/adapter'
 import type {
+  AnyInstancedPlugin,
   AnyPlugin,
-  AnyPluginHooks,
   AnyPlugins,
   ConfigArgument,
   InferPluginExtension,
@@ -39,7 +39,7 @@ import type {
 import { joinPaths } from '../utils/parser'
 
 class _AsterFlow<
-  const Drive extends Adapter<Runtime> = Adapter<Runtime.Node>,
+  const Drive extends AnyAdapter = Adapter<Runtime.Node>,
   const Routers extends AnyReminist = AnyReminist,
   const Plugins extends Record<string, ResolvedPlugin<AnyPlugin>> = {},
   const Middlewares extends readonly AnyMiddleware[] = [],
@@ -50,15 +50,15 @@ class _AsterFlow<
   readonly middlewares: Middlewares = [] as unknown as Middlewares
   
   plugins: Plugins = {} as Plugins
-  private readonly onRequestPlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
-  private readonly onResponsePlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
-  private readonly beforeInitializePlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
-  private readonly afterInitializePlugins: (ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks })[] = []
+  private readonly onRequestPlugins: AnyInstancedPlugin[] = []
+  private readonly onResponsePlugins: AnyInstancedPlugin[] = []
+  private readonly beforeInitializePlugins: AnyInstancedPlugin[] = []
+  private readonly afterInitializePlugins: AnyInstancedPlugin[] = []
   
 
   constructor(options?: AsterFlowOptions<Drive>) {
     this.driver = (options?.driver ?? adapters.node) as Drive
-    this.driver.onRequest = (request, response) => this.handleRequest(request, response ?? new Response())
+    this.driver.onRequest = this.handleRequest.bind(this)
   }
 
   /**
@@ -102,11 +102,13 @@ class _AsterFlow<
    * Handles incoming requests, executing `onRequest` and `onResponse` plugin hooks.
    * Finds the matching route and executes its handler. Manages errors and "not found" responses.
    */
-  private async handleRequest(request: Request<any>, response: Response): Promise<any> {
+  private async handleRequest(request: Request<Drive['runtime']>, response: Response) {
+    response = response ?? new Response()
+
     for (const plugin of this.onRequestPlugins) {
       for (const handler of plugin.hooks.onRequest!) {
         await handler(request, response, plugin.context)
-      }
+      } 
     }
 
     const notFound = () => response.notFound({
@@ -155,7 +157,7 @@ class _AsterFlow<
   middleware<
     BasePath extends string,
     const Routes extends readonly AnyRouter[]
-  >(options: { basePath: BasePath; controllers: Routes }): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
+  >(options: { basePath: BasePath; controllers: Routes }) {
     for (const route of options.controllers) {
       const path = joinPaths(options.basePath, route.url.getPathname())
       this.addRouteEntry(route, path)
@@ -180,7 +182,7 @@ class _AsterFlow<
    * Adds a single controller to AsterFlow.
    * The controller's path is normalized to be relative to the root.
    */
-  controller<Route extends AnyRouter>(router: Route): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
+  controller<Route extends AnyRouter>(router: Route) {
     const path = joinPaths('/', router.url.getPathname())
     this.addRouteEntry(router, path)
 
@@ -203,7 +205,7 @@ class _AsterFlow<
    * Registers a plugin and its configuration with the AsterFlow instance.
    * Applies any instance extensions defined by the plugin.
    */
-  use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>): AsterFlow<Drive, Routers, Plugins & { [K in P['name']]: ResolvedPlugin<P> }, Middlewares, Extension & InferPluginExtension<P>> {
+  use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>) {
     const pluginInstance = plugin.defineInstance(this)
     const builtPlugin = pluginInstance._build(config);
     
@@ -240,7 +242,7 @@ class _AsterFlow<
   const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
   const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> } = { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> },
   const Route extends Router<Responder, Path, Schema, Middlewares, Context, Routers> = Router<Responder, Path, Schema, Middlewares, Context, Routers>
-  >(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
+  >(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>) {
     this.controller(new Router(options))
 
     return this as unknown as AsterFlow<
@@ -270,9 +272,9 @@ class _AsterFlow<
     const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
     const Context extends MiddlewareOutput<Middlewares>,
     const Instance extends _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension>,
-    const Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>,
-    const Route extends Method<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>,
-  >(options: MethodOptions<Responder, Path, Methoder, Schema, Middlewares, Context, Instance, Handler>): AsterFlow<Drive, Reminist<any, any, any>, Plugins, Middlewares, Extension> {
+    const Handler extends MethodHandler<Path, Drive['runtime'], Responder, Schema, Middlewares, Context, Instance>,
+    const Route extends Method<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>,
+  >(options: MethodOptions<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>) {
     this.controller(new Method(options))
 
     return this as unknown as AsterFlow<
@@ -314,9 +316,8 @@ class _AsterFlow<
   async listen(...args: Parameters<Drive['listen']>) {
     await this.resolvePluginContexts()
     await this.runHooks('beforeInitialize')
-    const server = await this.driver.listen(...args)
+    await this.driver.listen(...args as any)
     await this.runHooks('afterInitialize')
-    return server
   }
 
   /**
@@ -350,7 +351,7 @@ class _AsterFlow<
 }
 
 export type AsterFlow<
-  Drive extends Adapter<Runtime>,
+  Drive extends AnyAdapter,
   Routers extends AnyReminist,
   Plugins extends AnyPlugins,
   Middlewares extends readonly AnyMiddleware[],
@@ -358,7 +359,7 @@ export type AsterFlow<
 > = _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension> & Extension
 
 export const AsterFlow: {
-  new <Drive extends Adapter<Runtime> = Adapter<Runtime.Node>>(
+  new <Drive extends AnyAdapter = Adapter<Runtime.Node>>(
     options?: AsterFlowOptions<Drive>
   ): AsterFlow<Drive, AnyReminist, {}, [], {}>
 } = _AsterFlow

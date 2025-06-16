@@ -1,3 +1,4 @@
+import type { Runtime } from '@asterflow/adapter'
 import type { Request } from '@asterflow/request'
 import type { Responders, Response } from '@asterflow/response'
 import type { Analyze, ParsePath } from '@asterflow/url-parser'
@@ -10,7 +11,7 @@ import type { AnySchema, InferredData, SchemaDynamic } from './schema'
 
 export type AnyRouteHandler =  { [Method in MethodKeys]?: RouteHandler<string, Responders, Method, SchemaDynamic<Method>, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>>; }
 export type AnyRouter =
-  Router<any, any, any, any, any, any> | Method<any, any, any, any, any, any, any>
+  Router<any, any, any, any, any, any> | Method<any, any, any, any, any, any, any, any, any>
 
 export type RouteHandler<
   Path extends string,
@@ -19,7 +20,7 @@ export type RouteHandler<
   Schema extends SchemaDynamic<Method>,
   Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
-  > = <RequestType> (args: {
+  > = <RequestType extends Runtime> (args: {
   request: Request<RequestType>
   response: Response<Responder>;
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>

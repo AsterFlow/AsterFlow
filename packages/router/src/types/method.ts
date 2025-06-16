@@ -1,3 +1,4 @@
+import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from '@asterflow/core'
 import type { Request } from '@asterflow/request'
 import type { Responders, Response } from '@asterflow/response'
@@ -20,19 +21,20 @@ export enum MethodType {
   patch = 'patch'
 }
 
-export type AnyMethodHandler = MethodHandler<string, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>, AnyAsterflow>
+export type AnyMethodHandler = MethodHandler<string, Runtime, Responders, AnySchema, AnyMiddleware[], MiddlewareOutput<AnyMiddleware[]>, AnyAsterflow>
 export type MethodKeys = keyof typeof MethodType
 
 export type MethodHandler<
   Path extends string,
+  Drive extends Runtime,
   Responder extends Responders,
   Schema extends AnySchema,
   Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
   Instance extends AnyAsterflow
-> = <RequestType> (args: {
+> = (args: {
   instance: Instance
-  request: Request<RequestType>
+  request: Request<Drive>
   response: Response<Responder>
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferSchema<Schema>
@@ -42,12 +44,13 @@ export type MethodHandler<
 export type MethodOptions<
   Responder extends Responders,
   Path extends string,
+  Drive extends Runtime,
   Method extends MethodKeys,
   Schema extends AnySchema,
   Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
   Context extends MiddlewareOutput<Middlewares>,
   Instance extends AnyAsterflow,
-  Handler extends MethodHandler<Path, Responder, Schema, Middlewares, Context, Instance>
+  Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance>
 > = {
   path: Path,
   name?: string,

@@ -1,26 +1,20 @@
+import { type Runtime } from '@asterflow/adapter'
 import type { Request as ERequest } from 'express'
 import { Request } from '../controllers/Request'
 
-export class ExpressRequest extends Request<ERequest> {
+export class ExpressRequest extends Request<Runtime.Express> {
   constructor (request: ERequest) {
     super(request)
   }
-  
-  /**
-   * Read and parse the request body.
-   * Supports JSON and application/x-www-form-urlencoded.
-   */
+
   getBody(): unknown {
-    return this.request.body
+    return this.raw.body
   }
 
-  /**
-   * Return all headers as a Record<string, string>, joining multiple values with commas.
-   */
   getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {}
 
-    for (const [key, value] of Object.entries(this.request.headers)) {
+    for (const [key, value] of Object.entries(this.raw.headers)) {
       if (Array.isArray(value)) {
         headers[key.toLowerCase()] = value.join(', ')
       } else if (typeof value === 'string') {
@@ -31,17 +25,11 @@ export class ExpressRequest extends Request<ERequest> {
     return headers
   }
 
-  /**
-   * Compose the full URL string: protocol://host[:port]/path?query
-   */
   getPathname(): string {
-    return this.request.url ?? '/'
+    return this.raw.url ?? '/'
   }
 
-  /**
-   * Returns the HTTP method of the request (GET, POST, etc.).
-   */
   getMethod(): string {
-    return this.request.method
+    return this.raw.method
   }
 }

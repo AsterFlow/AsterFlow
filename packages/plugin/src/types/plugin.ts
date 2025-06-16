@@ -1,4 +1,5 @@
  
+import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
 import type { Request } from '@asterflow/request'
 import type { Response } from '@asterflow/response'
@@ -7,6 +8,7 @@ import type { Plugin } from '../controllers/Plugin'
 export type AnyPlugin = Plugin<string, any, any, any, any, any>;
 export type AnyPlugins = Record<string, ResolvedPlugin<AnyPlugin>>
 export type AnyPluginHooks = PluginHooks<any, any>
+export type AnyInstancedPlugin = ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks }
 
 export type InferPluginExtension<P> = P extends Plugin<any, any, any, any, any, infer Ext> ? Ext : {};
 
@@ -42,8 +44,8 @@ export type PluginHooks<
 > = {
   beforeInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
   afterInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
-  onRequest?: ((request: Request<unknown>, response: Response, context: Context) => void | Promise<void>)[]
-  onResponse?: ((request: Request<unknown>, response: Response, context: Context) => void | Promise<void>)[]
+  onRequest?: ((request: Request<Runtime>, response: Response, context: Context) => void | Promise<void>)[]
+  onResponse?: ((request: Request<Runtime>, response: Response, context: Context) => void | Promise<void>)[]
 }
 
 /**

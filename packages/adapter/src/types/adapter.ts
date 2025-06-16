@@ -4,6 +4,7 @@ import type { ServeOptions as BunServeOptions } from 'bun'
 import type { Express } from 'express'
 import type { FastifyInstance, FastifyListenOptions } from 'fastify'
 import type { ListenOptions } from 'net'
+import type { Adapter } from '../controllers/Adapter'
 
 export enum Runtime {
   Bun = 'bun',
@@ -22,20 +23,24 @@ export type FastifyListenArgs = [fastify: FastifyInstance, params: FastifyListen
 export type BunListenArgs = [options: Omit<BunServeOptions, 'fetch'>, callback?: (err: Error | null) => void]
 export type NodeListenArgs = [options: ListenOptions, callback?: (err: Error | null) => void]
 
-export type ListenParams<Type extends Runtime> =
-  Type extends Runtime.Bun
-    ? BunListenArgs
-  : Type extends Runtime.Fastify
-    ? FastifyListenArgs
-  : Type extends Runtime.Express
-    ? [app: Express, ExpressListenArgs]
-  : NodeListenArgs
+export interface ListenParams {
+  [Runtime.Bun]: BunListenArgs
+  [Runtime.Fastify]: FastifyListenArgs
+  [Runtime.Express]: [app: Express, ExpressListenArgs]
+  [Runtime.Node]: NodeListenArgs
+}
+
+export type AnyAdapter = 
+  | Adapter<Runtime.Bun>
+  | Adapter<Runtime.Express>
+  | Adapter<Runtime.Node>
+  | Adapter<Runtime.Fastify>
 
 export type OptionsDriver<Type extends Runtime> = {
   runtime: Type
-  listen: (...params: ListenParams<Type>) => void
-  onRequest?: <RequestType> (
-    request: Request<RequestType>,
+  listen: (...params: ListenParams[Type]) => void
+  onRequest?: (
+    request: Request<Type>,
     response?: ResponseCustom
   ) => ResponseCustom | Promise<ResponseCustom>
 }

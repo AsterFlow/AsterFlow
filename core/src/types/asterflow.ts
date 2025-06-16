@@ -1,4 +1,4 @@
-import type { Adapter, Runtime } from '@asterflow/adapter'
+import type { AnyAdapter } from '@asterflow/adapter'
 import type { AsterFlow } from '../controllers/Asterflow'
 
 /**
@@ -15,7 +15,5 @@ export type ExtendedAsterflow<AF extends AnyAsterflow> =
  * Defines the options for initializing an AsterFlow instance.
  */
 export type AsterFlowOptions<
-  Drive extends Adapter<Runtime> = Adapter<Runtime.Node>
-> = {
-  driver?: Drive
-}
+  Drive extends AnyAdapter
+> = { driver?: Drive }

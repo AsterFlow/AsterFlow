@@ -1,6 +1,7 @@
+import type { Runtime } from '@asterflow/adapter'
 import type { Request } from '@asterflow/request'
+import type { Responders, Response } from '@asterflow/response'
 import type { Middleware } from '../controllers/Middleware'
-import type { Response, Responders } from '@asterflow/response'
 import type { AnySchema, InferSchema } from './schema'
 
 export type AnyMiddleware = Middleware<any, any, any, any>
@@ -24,7 +25,7 @@ export type MiddlewareOptions<
   Parameters extends Record<string, unknown> = Record<string, unknown>,
 > = {
   name: Name,
-  onRun <RequestType> (args: {
+  onRun <RequestType extends Runtime> (args: {
     response: Response<Responder>;
     request: Request<RequestType>
     schema: InferSchema<Schema>

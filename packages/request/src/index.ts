@@ -1,4 +1,5 @@
 export * from './controllers/Request'
+export * from './types/request'
 export * from './adapters/node'
 export * from './adapters/bun'
 export * from './adapters/express'

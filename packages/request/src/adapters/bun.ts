@@ -1,40 +1,28 @@
-import { Request as Adapter } from '../controllers/Request'
+import type { Runtime } from '@asterflow/adapter'
+import { Request as Requester } from '../controllers/Request'
 
-export class BunRequest extends Adapter<Request> {
+export class BunRequest extends Requester<Runtime.Bun> {
   constructor (request: Request) {
     super(request)
   }
   
-  /**
-   * Read and parse the request body.
-   * Supports JSON and application/x-www-form-urlencoded.
-   */
   async getBody(): Promise<unknown> {
-    return this.request.clone().json().catch(() => this.request.text())
+    return this.raw.clone().json().catch(() => this.raw.text())
   }
 
-  /**
-   * Return all headers as a Record<string, string>, joining multiple values with commas.
-   */
   getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {}
-    this.request.headers.forEach((value, key) => {
+    this.raw.headers.forEach((value, key) => {
       headers[key] = value
     })
     return headers
   }
 
-  /**
-   * Compose the full URL string: protocol://host[:port]/path?query
-   */
   getPathname(): string {
-    return this.request.url
+    return this.raw.url
   }
 
-  /**
-   * Returns the HTTP method of the request (GET, POST, etc.).
-   */
   getMethod(): string {
-    return this.request.method
+    return this.raw.method
   }
 }

@@ -64,7 +64,7 @@ export type CombinePaths<
 export type InferPath<T> = 
   T extends Router<any, infer P, any, any, any, any>
     ? CombinePaths<'/', P>
-    : T extends Method<any, infer P, any, any, any, any, any, any>
+    : T extends Method<any, infer P, any, any, any, any, any, any, any>
       ? CombinePaths<'/', P>
       : never
 
