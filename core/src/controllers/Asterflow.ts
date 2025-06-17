@@ -1,6 +1,6 @@
 import { adapters, Runtime, type Adapter, type AnyAdapter } from '@asterflow/adapter'
 import type {
-  AnyInstancedPlugin,
+  AnyPluginInstance,
   AnyPlugin,
   AnyPlugins,
   ConfigArgument,
@@ -50,10 +50,10 @@ class _AsterFlow<
   readonly middlewares: Middlewares = [] as unknown as Middlewares
   
   plugins: Plugins = {} as Plugins
-  private readonly onRequestPlugins: AnyInstancedPlugin[] = []
-  private readonly onResponsePlugins: AnyInstancedPlugin[] = []
-  private readonly beforeInitializePlugins: AnyInstancedPlugin[] = []
-  private readonly afterInitializePlugins: AnyInstancedPlugin[] = []
+  private readonly onRequestPlugins: AnyPluginInstance[] = []
+  private readonly onResponsePlugins: AnyPluginInstance[] = []
+  private readonly beforeInitializePlugins: AnyPluginInstance[] = []
+  private readonly afterInitializePlugins: AnyPluginInstance[] = []
   
 
   constructor(options?: AsterFlowOptions<Drive>) {

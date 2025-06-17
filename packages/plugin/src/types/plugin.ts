@@ -7,8 +7,8 @@ import type { Plugin } from '../controllers/Plugin'
 
 export type AnyPlugin = Plugin<string, any, any, any, any, any>;
 export type AnyPlugins = Record<string, ResolvedPlugin<AnyPlugin>>
-export type AnyPluginHooks = PluginHooks<any, any>
-export type AnyInstancedPlugin = ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks }
+export type AnyPluginHooks = PluginHooks<any, any, any>
+export type AnyPluginInstance = ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks }
 
 export type InferPluginExtension<P> = P extends Plugin<any, any, any, any, any, infer Ext> ? Ext : {};
 
