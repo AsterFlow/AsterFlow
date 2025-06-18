@@ -2,11 +2,6 @@
 import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
 import type { PluginHooks, Resolver } from '../types/plugin'
 
-/**
- * A factory for creating plugins that can be configured and attached to AsterFlow.
- * Plugins are defined with a series of resolvers (`decorate`, `derive`) and lifecycle
- * hooks (`on`) that build up its context and runtime behavior.
- */
 export class Plugin<
   Path extends string,
   Instance extends AnyAsterflow,
@@ -114,14 +109,9 @@ export class Plugin<
    */
   on<
     Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>,
-    Handler extends NonNullable<
-      PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>[Event]
-    > extends (infer F)[]
-      ? F
-      : never
   >(
     event: Event,
-    handler: Handler
+    handler: NonNullable<PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>[Event]>[number]
   ) {
     const existingHandlers = (this.hooks[event] as any[]) || []
     const newHooks = {
@@ -132,7 +122,6 @@ export class Plugin<
     type NewHooks = Omit<Hooks, Event> & {
       [K in Event]: [
         ...(Hooks extends { [k in Event]: any[] } ? Hooks[K] : []),
-        Handler
       ]
     };
     
@@ -151,9 +140,9 @@ export class Plugin<
    * com as novas propriedades.
    */
   extends<E extends Record<string, any>>(
-    extensionFn: (app: Instance, context: Context) => E
+    extensionFn: (app: ExtendedAsterflow<Instance>, context: Context) => E
   ) {
-    return new Plugin<Path, Instance, Config, Context, Hooks, Extension & E>(
+    return new Plugin<Path, ExtendedAsterflow<Instance>, Config, Context, Hooks, Extension & E>(
       this.name,
       this.resolvers,
       this.hooks,
@@ -173,11 +162,9 @@ export class Plugin<
 
     return {
       name: this.name,
-      // O contexto inicial é a própria configuração.
       context: { ...finalConfig }, 
       hooks: this.hooks,
       _extensionFn: this._extensionFn,
-      // Retorna os resolvers para execução posterior.
       resolvers: this.resolvers 
     }
   }

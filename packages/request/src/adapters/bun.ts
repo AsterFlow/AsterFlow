@@ -1,28 +1,27 @@
 import type { Runtime } from '@asterflow/adapter'
 import { Request as Requester } from '../controllers/Request'
+import type { RequestAbstract } from '../types/request'
 
-export class BunRequest extends Requester<Runtime.Bun> {
-  constructor (request: Request) {
-    super(request)
-  }
-  
-  async getBody(): Promise<unknown> {
-    return this.raw.clone().json().catch(() => this.raw.text())
+
+export function createBunRequest(request: Request) {
+  const functions: RequestAbstract = {
+    async getBody(): Promise<unknown> {
+      return request.clone().json().catch(() => request.text())
+    },
+    getHeaders(): Record<string, string> {
+      const headers: Record<string, string> = {}
+      request.headers.forEach((value, key) => {
+        headers[key] = value
+      })
+      return headers
+    },
+    getPathname(): string {
+      return request.url
+    },
+    getMethod(): string {
+      return request.method
+    }
   }
 
-  getHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {}
-    this.raw.headers.forEach((value, key) => {
-      headers[key] = value
-    })
-    return headers
-  }
-
-  getPathname(): string {
-    return this.raw.url
-  }
-
-  getMethod(): string {
-    return this.raw.method
-  }
+  return new Requester<Runtime.Bun>(request, functions)
 }

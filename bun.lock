@@ -40,6 +40,8 @@
       "version": "1.0.0",
       "dependencies": {
         "@asterflow/core": "workspace:../core",
+        "@asterflow/plugin": "workspace:../packages/plugin",
+        "@asterflow/request": "workspace:../packages/request",
         "@asterflow/response": "workspace:../packages/response",
         "@asterflow/url-parser": "^2.0.1",
       },
@@ -87,6 +89,7 @@
         "@asterflow/url-parser": "^2.0.1",
       },
       "devDependencies": {
+        "@asterflow/adapter": "workspace:../adapter",
         "undici-types": "^7.10.0",
       },
       "peerDependencies": {

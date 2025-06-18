@@ -1,5 +1,5 @@
 import type { Request } from '@asterflow/request'
-import type { Response as ResponseCustom } from '@asterflow/response'
+import type { AsterResponse} from '@asterflow/response'
 import type { ServeOptions as BunServeOptions } from 'bun'
 import type { Express } from 'express'
 import type { FastifyInstance, FastifyListenOptions } from 'fastify'
@@ -41,6 +41,6 @@ export type OptionsDriver<Type extends Runtime> = {
   listen: (...params: ListenParams[Type]) => void
   onRequest?: (
     request: Request<Type>,
-    response?: ResponseCustom
-  ) => ResponseCustom | Promise<ResponseCustom>
+    response?: AsterResponse
+  ) => AsterResponse | Promise<AsterResponse>
 }

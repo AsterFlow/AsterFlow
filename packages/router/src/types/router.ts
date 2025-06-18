@@ -1,6 +1,6 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { Request } from '@asterflow/request'
-import type { Responders, Response } from '@asterflow/response'
+import type { AsterResponse, Responders } from '@asterflow/response'
 import type { Analyze, ParsePath } from '@asterflow/url-parser'
 import type { Method } from '../controllers/Method'
 import type { Middleware } from '../controllers/Middleware'
@@ -22,7 +22,7 @@ export type RouteHandler<
   Context extends MiddlewareOutput<Middlewares>,
   > = <RequestType extends Runtime> (args: {
   request: Request<RequestType>
-  response: Response<Responder>;
+  response: AsterResponse<Responder>;
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferredData<Method, Schema>;
   middleware: Context

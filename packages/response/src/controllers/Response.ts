@@ -1,72 +1,106 @@
 import { ServerResponse } from 'http'
-import type { BaseContext, BodyMap, IResponse, Responders, ResponseOptions } from '../types/response'
+import type { BaseContext, BodyMap, Responders, ResponseOptions } from '../types/response'
 import type { HttpHeader, Prettify } from '../types/utils'
 
-export class Response<
+export class AsterResponse<
   RawResponder extends Responders = Responders,
   BodySchema extends BodyMap<RawResponder> = BodyMap<RawResponder>,
   StatusCode extends keyof BodySchema = keyof BodySchema,
   Context extends BaseContext = BaseContext
-> implements IResponse<RawResponder, BodySchema, StatusCode, Context> {
-  protected readonly _status: StatusCode
-  readonly body?: BodySchema[StatusCode]
-  readonly context: Context
+> {
+  protected _status: StatusCode
+  body?: BodySchema[StatusCode]
+  context: Context
 
   constructor(options?: ResponseOptions<RawResponder, BodySchema, StatusCode, Context>) {
     this._status = options?.code ?? (200 as StatusCode)
     this.body = options?.data
     this.context = options?.context ?? (({ header: {}, cookies: {} }) as Context)
   }
-
-  protected clone<NewContext extends BaseContext = Context>(overrides: {
-    data?: BodySchema[StatusCode]
-    context?: NewContext
-  }): Response<RawResponder, BodySchema, StatusCode, NewContext>
-  protected clone<NewStatus extends keyof BodySchema, NewContext extends Context = Context>(overrides: {
-    code: NewStatus
-    data?: BodySchema[NewStatus]
-    context?: NewContext
-  }): Response<RawResponder, BodySchema, NewStatus, NewContext>
-  protected clone(overrides: { code?: keyof BodySchema; data?: BodySchema[keyof BodySchema]; context?: Context }): Response<RawResponder, BodySchema, keyof BodySchema, Context> {
-    return new Response({
-      code: overrides.code !== undefined ? overrides.code : this._status,
-      data: overrides.data !== undefined ? overrides.data : this.body,
-      context: overrides.context !== undefined ? overrides.context : this.context
-    })
-  }
   
-  status<NS extends keyof BodySchema>(code: NS) { return this.clone({ code }) }
-  getStatus() { return this._status }
+  status<NS extends keyof BodySchema>(code: NS) {
+    this._status = code as unknown as StatusCode
+    return this as unknown as AsterResponse<RawResponder, BodySchema, NS, Context>
+  }
   code<NS extends keyof BodySchema>(code: NS) { return this.status(code) }
+  getStatus() { return this._status }
 
-  send(data: BodySchema[StatusCode]) { return this.clone({ data }) }
+  send(data: BodySchema[StatusCode]) {
+    this.body = data
+    return this as AsterResponse<RawResponder, BodySchema, StatusCode, Context>
+  }
   json(data: BodySchema[StatusCode]) {
     type NewContext = Prettify<{
       header: Prettify<Context['header'] & { 'Content-Type': 'application/json' }>
       cookies: Context['cookies']
     }>
-    
-    return this.clone<NewContext>({
-      data,
-      context: {
-        ...this.context,
-        header: {
-          ...this.context.header,
-          'Content-Type': 'application/json'
-        }
-      } as NewContext
-    })
+
+    this.send(data)
+    this.context = {
+      ...this.context,
+      header: {
+        ...this.context.header,
+        'Content-Type': 'application/json'
+      }
+    }
+
+    return this as unknown as AsterResponse<RawResponder, BodySchema, StatusCode, NewContext>
   }
 
-  success(data: BodySchema[200]) { return this.clone({ code: 200, data }) }
-  created(data: BodySchema[201]) { return this.clone({ code: 201, data }) }
-  noContent(data: BodySchema[204]) { return this.clone({ code: 204, data }) }
-  badRequest(data: BodySchema[400]) { return this.clone({ code: 400, data }) }
-  unauthorized(data: BodySchema[401]) { return this.clone({ code: 401, data }) }
-  forbidden(data: BodySchema[403]) { return this.clone({ code: 403, data }) }
-  notFound(data: BodySchema[404]) { return this.clone({ code: 404, data }) }
-  validationError(data: BodySchema[422]) { return this.clone({ code: 422, data }) }
-  internalServerError(data: BodySchema[500]) { return this.clone({ code: 500, data }) }
+  success(data: BodySchema[200]) {
+    this.status(200)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 200, Context>
+  }
+  created(data: BodySchema[201]) {
+    this.status(201)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 201, Context>
+  }
+  noContent(data: BodySchema[204]) {
+    this.status(204)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 204, Context>
+  }
+  badRequest(data: BodySchema[400]) {
+    this.status(400)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 400, Context>
+  }
+  unauthorized(data: BodySchema[401]) {
+    this.status(401)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 401, Context>
+  }
+  forbidden(data: BodySchema[403]) {
+    this.status(403)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 403, Context>
+  }
+  notFound(data: BodySchema[404]) {
+    this.status(404)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 404, Context>
+  }
+  validationError(data: BodySchema[422]) {
+    this.status(422)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 422, Context>
+  }
+  internalServerError(data: BodySchema[500]) {
+    this.status(500)
+    this.send(data as BodySchema[StatusCode])
+
+    return this as AsterResponse<RawResponder, BodySchema, 500, Context>
+  }
 
   setHeader<Name extends HttpHeader, Value extends string>(
     name: Name,
@@ -77,15 +111,15 @@ export class Response<
       cookies: Context['cookies']
     }>
 
-    return this.clone<NewContext>({
-      context: {
-        ...this.context,
-        header: {
-          ...this.context.header,
-          [name]: value
-        }
-      } as unknown as NewContext
-    })
+    this.context = {
+      ...this.context,
+      header: {
+        ...this.context.header,
+        [name]: value
+      }
+    }
+
+    return this as unknown as AsterResponse<RawResponder, BodySchema, StatusCode, NewContext>
   }
 
   setCookie<Name extends string, Value extends string>(
@@ -97,25 +131,28 @@ export class Response<
       cookies: Prettify<Context['cookies'] & Record<Name, Value>>
     }>
 
-    return this.clone<NewContext>({
-      context: {
-        header: this.context.header,
-        cookies: {
-          ...this.context.cookies,
-          [name]: value
-        }
-      } as NewContext
-    })
+    this.context = {
+      ...this.context,
+      cookies: {
+        ...this.context.cookies,
+        [name]: value
+      }
+    }
+    
+    return this as unknown as AsterResponse<RawResponder, BodySchema, StatusCode, NewContext>
   }
   
   toResponse(): globalThis.Response {
     const headers = new Headers()
     headers.set('Content-Type', 'text/plain')
+
     for (const [k, v] of Object.entries(this.context.header)) headers.set(k, v)
     if (typeof this.body === 'object' || Array.isArray(this.body)) {
       headers.set('Content-Type', 'application/json')
     }
+
     for (const [n, v] of Object.entries(this.context.cookies)) headers.append('Set-Cookie', `${n}=${v}`)
+
     const body = headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
     return new globalThis.Response(body, {
       status: this._status as number,
@@ -133,6 +170,7 @@ export class Response<
     }
 
     for (const [n, v] of Object.entries(this.context.cookies)) headers.append('Set-Cookie', `${n}=${v}`)
+
     const body = headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
     output.writeHead(this._status as number, Object.fromEntries(headers))
     output.end(body)
@@ -141,6 +179,6 @@ export class Response<
   static create<RawResponder extends Responders>() {
     type BodySchema = BodyMap<RawResponder>
   
-    return new Response<RawResponder, BodySchema, keyof BodySchema, BaseContext>
+    return new AsterResponse<RawResponder, BodySchema, keyof BodySchema, BaseContext>
   }
 }

@@ -32,4 +32,18 @@ export class Router<
     this.use = options.use
     this.url = new Analyze(this.path)
   }
+
+  static create<Responder extends Responders>() {
+    return <
+    const Path extends string,
+    const Schema extends SchemaDynamic<MethodKeys>,
+    const Middlewares extends readonly Middleware<Responder, AnySchema, string, Record<string, unknown>>[],
+    const Context extends MiddlewareOutput<Middlewares>,
+    const Routers extends { [Method in MethodKeys]?: RouteHandler<Path, Responder, Method, Schema, Middlewares, Context> }
+  >(
+      options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>
+    ): Router<Responder, Path, Schema, Middlewares, Context, Routers> => {
+      return new Router(options)
+    }
+  }
 }

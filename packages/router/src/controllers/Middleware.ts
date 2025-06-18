@@ -1,5 +1,5 @@
-import type { MiddlewareOptions } from '../types/mindleware'
 import type { Responders } from '@asterflow/response'
+import type { MiddlewareOptions } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
 
 export class Middleware<

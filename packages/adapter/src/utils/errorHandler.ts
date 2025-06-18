@@ -1,4 +1,4 @@
-import { Response } from '@asterflow/response'
+import { AsterResponse } from '@asterflow/response'
 
 interface ErrorPayload {
   statusCode: number;
@@ -10,10 +10,10 @@ interface ErrorPayload {
 /**
  * Turn any thrown value into a Response.
  */
-export function toErrorResponse(err: unknown): Response {
+export function toErrorResponse(err: unknown): AsterResponse {
   let payload: ErrorPayload
 
-  if (err instanceof Response) {
+  if (err instanceof AsterResponse) {
     // If someone threw an already-built Response, bubble it through.
     return err
   } else if (err instanceof Error) {
@@ -37,7 +37,7 @@ export function toErrorResponse(err: unknown): Response {
   // Always log the full err for diagnostics
   console.error('Unhandled exception in adapter:', err)
 
-  return new Response().status(payload.statusCode).json({
+  return new AsterResponse().status(payload.statusCode).json({
     error: payload.error,
     message: payload.message,
     ...(payload.details ? { details: payload.details } : {})

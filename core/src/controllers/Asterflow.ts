@@ -1,14 +1,14 @@
 import { adapters, Runtime, type Adapter, type AnyAdapter } from '@asterflow/adapter'
 import type {
-  AnyPluginInstance,
   AnyPlugin,
+  AnyPluginInstance,
   AnyPlugins,
-  ConfigArgument,
+  InferConfigArgument,
   InferPluginExtension,
   ResolvedPlugin
 } from '@asterflow/plugin'
 import type { Request } from '@asterflow/request'
-import { Response, type Responders } from '@asterflow/response'
+import { AsterResponse, type Responders } from '@asterflow/response'
 import {
   Method,
   MethodType,
@@ -38,7 +38,7 @@ import type {
 } from '../types/routes'
 import { joinPaths } from '../utils/parser'
 
-class _AsterFlow<
+export class AsterFlowInstance<
   const Drive extends AnyAdapter = Adapter<Runtime.Node>,
   const Routers extends AnyReminist = AnyReminist,
   const Plugins extends Record<string, ResolvedPlugin<AnyPlugin>> = {},
@@ -65,7 +65,7 @@ class _AsterFlow<
    * Executes a route handler, processing the request and response.
    * Performs schema validation, if present, and invokes the route handler.
    */
-  async executeHandler(routeEntry: RouteEntry<string, AnyRouter>, request: Request<any>, response: Response) {
+  async executeHandler(routeEntry: RouteEntry<string, AnyRouter>, request: Request<any>, response: AsterResponse) {
     const { route } = routeEntry
     const method = request.getMethod().toLowerCase() as MethodType
     const handler = route instanceof Method ? route.handler : route.methods[method]
@@ -102,12 +102,12 @@ class _AsterFlow<
    * Handles incoming requests, executing `onRequest` and `onResponse` plugin hooks.
    * Finds the matching route and executes its handler. Manages errors and "not found" responses.
    */
-  private async handleRequest(request: Request<Drive['runtime']>, response: Response) {
+  private async handleRequest(request: Request<Drive['runtime']>, response: AsterResponse) {
     response = response ?? new Response()
 
     for (const plugin of this.onRequestPlugins) {
       for (const handler of plugin.hooks.onRequest!) {
-        await handler(request, response, plugin.context)
+        await handler({ request, response, context: plugin.context })
       } 
     }
 
@@ -126,9 +126,16 @@ class _AsterFlow<
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
     request.url = request.url.withParser(routeEntry.route.url) as any
 
-    let responseData
     try {
-      responseData = await this.executeHandler(routeEntry, request, response)
+      await this.executeHandler(routeEntry, request, response)
+
+      for (const plugin of this.onResponsePlugins) {
+        for (const handler of plugin.hooks.onResponse!) {
+          await handler({ response, context: plugin.context, request })
+        }
+      }
+
+      return response
     } catch (err) {
       const errorPayload = {
         statusCode: 400,
@@ -137,17 +144,6 @@ class _AsterFlow<
       }
       return response.badRequest(errorPayload)
     }
-
-    if (responseData) {
-      for (const plugin of this.onResponsePlugins) {
-        for (const handler of plugin.hooks.onResponse!) {
-          await handler(request, response, plugin.context)
-        }
-      }
-      return responseData
-    }
-
-    return notFound()
   }
   
   /**
@@ -205,7 +201,7 @@ class _AsterFlow<
    * Registers a plugin and its configuration with the AsterFlow instance.
    * Applies any instance extensions defined by the plugin.
    */
-  use<P extends AnyPlugin>(plugin: P, config: ConfigArgument<P>) {
+  use<P extends AnyPlugin>(plugin: P, config?: InferConfigArgument<P>) {
     const pluginInstance = plugin.defineInstance(this)
     const builtPlugin = pluginInstance._build(config);
     
@@ -271,7 +267,7 @@ class _AsterFlow<
     const Schema extends AnySchema,
     const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
     const Context extends MiddlewareOutput<Middlewares>,
-    const Instance extends _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension>,
+    const Instance extends AsterFlowInstance<Drive, Routers, Plugins, Middlewares, Extension>,
     const Handler extends MethodHandler<Path, Drive['runtime'], Responder, Schema, Middlewares, Context, Instance>,
     const Route extends Method<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>,
   >(options: MethodOptions<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>) {
@@ -351,15 +347,21 @@ class _AsterFlow<
 }
 
 export type AsterFlow<
-  Drive extends AnyAdapter,
-  Routers extends AnyReminist,
-  Plugins extends AnyPlugins,
-  Middlewares extends readonly AnyMiddleware[],
-  Extension extends Record<string, any>
-> = _AsterFlow<Drive, Routers, Plugins, Middlewares, Extension> & Extension
+  Drive extends AnyAdapter = AnyAdapter,
+  Routers extends AnyReminist = AnyReminist,
+  Plugins extends AnyPlugins = AnyPlugins,
+  Middlewares extends readonly AnyMiddleware[] = AnyMiddleware[],
+  Extension extends Record<string, any> = Record<string, any>
+> = AsterFlowInstance<Drive, Routers, Plugins, Middlewares, Extension> & Extension
 
 export const AsterFlow: {
   new <Drive extends AnyAdapter = Adapter<Runtime.Node>>(
     options?: AsterFlowOptions<Drive>
   ): AsterFlow<Drive, AnyReminist, {}, [], {}>
-} = _AsterFlow
+} = AsterFlowInstance
+
+/**
+ * Represents a generic AsterFlow instance, with all its types defined as `any`.
+ * This allows flexibility when referencing AsterFlow without specifying all its type parameters.
+ */
+export type AnyAsterflow = AsterFlowInstance<any, any, any, any, any>

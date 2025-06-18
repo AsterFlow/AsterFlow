@@ -1,7 +1,7 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from '@asterflow/core'
-import type { Request } from '@asterflow/request'
-import type { Responders, Response } from '@asterflow/response'
+import type { AsterRequest } from '@asterflow/request'
+import type { Responders, AsterResponse } from '@asterflow/response'
 import type { Analyze, ParsePath } from '@asterflow/url-parser'
 import type { Middleware } from '../controllers/Middleware'
 import type { AnyMiddleware, MiddlewareOutput } from './mindleware'
@@ -34,12 +34,12 @@ export type MethodHandler<
   Instance extends AnyAsterflow
 > = (args: {
   instance: Instance
-  request: Request<Drive>
-  response: Response<Responder>
+  request: AsterRequest<Drive>
+  response: AsterResponse<Responder>
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferSchema<Schema>
   middleware: Context,
-}) => Promise<Response<Responder>> | Response<Responder>
+}) => Promise<AsterResponse<Responder>> | AsterResponse<Responder>
 
 export type MethodOptions<
   Responder extends Responders,

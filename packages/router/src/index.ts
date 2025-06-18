@@ -1,7 +1,6 @@
 export * from './controllers/Router'
 export * from './controllers/Middleware'
 export * from './controllers/Method'
-export * from './controllers/createRouter'
 export * from './types/router'
 export * from './types/schema'
 export * from './types/method'

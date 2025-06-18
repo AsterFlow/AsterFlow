@@ -2,7 +2,7 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
 import type { Request } from '@asterflow/request'
-import type { Response } from '@asterflow/response'
+import type { AsterResponse } from '@asterflow/response'
 import type { Plugin } from '../controllers/Plugin'
 
 export type AnyPlugin = Plugin<string, any, any, any, any, any>;
@@ -13,7 +13,6 @@ export type AnyPluginInstance = ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHo
 export type InferPluginExtension<P> = P extends Plugin<any, any, any, any, any, infer Ext> ? Ext : {};
 
 // Este é o tipo que será armazenado na instância do AsterFlow.
-// Note que os hooks não carregam mais o tipo gigante e recursivo do App.
 export type ResolvedPlugin<P extends AnyPlugin> = P extends Plugin<
   infer Path, any, any, infer Ctx, any, infer Ext
 > ? {
@@ -28,7 +27,7 @@ export type ResolvedPlugin<P extends AnyPlugin> = P extends Plugin<
  * Tipo para extrair o objeto de configuração de um plugin.
  * Ele torna as propriedades com valores padrão opcionais.
  */
-export type ConfigArgument<P extends AnyPlugin>
+export type InferConfigArgument<P extends AnyPlugin>
   = P extends Plugin<any, any, infer C, any, any>
     ? Omit<C, keyof P['defaultConfig']> &
         Partial<Pick<C, keyof P['defaultConfig'] & keyof C>>
@@ -44,12 +43,15 @@ export type PluginHooks<
 > = {
   beforeInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
   afterInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => void | Promise<void>)[]
-  onRequest?: ((request: Request<Runtime>, response: Response, context: Context) => void | Promise<void>)[]
-  onResponse?: ((request: Request<Runtime>, response: Response, context: Context) => void | Promise<void>)[]
+  onRequest?: ((
+    { context, request, response }: { request: Request<Runtime>, response: AsterResponse, context: Context }
+  ) => void | Promise<void>)[]
+  onResponse?: ((
+    { context, request, response }: { request: Request<Runtime>, response: AsterResponse, context: Context }
+  ) => void | Promise<void>)[]
 }
 
 /**
  * Represents a function that resolves a part of the plugin's context.
- * @internal
  */
 export type Resolver = (config: any, context: any) => Promise<Record<string, any>>

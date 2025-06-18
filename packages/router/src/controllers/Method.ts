@@ -1,3 +1,4 @@
+import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from '@asterflow/core'
 import type { Responders } from '@asterflow/response'
 import { Analyze } from '@asterflow/url-parser'
@@ -5,7 +6,6 @@ import type { MethodHandler, MethodKeys, MethodOptions } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
 import type { Middleware } from './Middleware'
-import type { Runtime } from '@asterflow/adapter'
 
 export class Method<
   Responder extends Responders,

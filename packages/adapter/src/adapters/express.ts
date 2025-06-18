@@ -1,5 +1,5 @@
-import { ExpressRequest } from '@asterflow/request'
-import { Response } from '@asterflow/response'
+import { createExpressRequest } from '@asterflow/request'
+import { AsterResponse } from '@asterflow/response'
 import { type Express, type Response as ExResponse, type Request } from 'express'
 import { Adapter } from '../controllers/Adapter'
 import { Runtime } from '../types/adapter'
@@ -9,7 +9,7 @@ export default new Adapter({
   listen(instance: Express, ...params) {
     instance.all('/{*path}', async (req: Request, res: ExResponse) => {
       if (!this.onRequest) {
-        const response = new Response().notFound({
+        const response = new AsterResponse().notFound({
           statusCode: 500,
           error: 'Internal Server Error',
           message: 'The onRequest() function must be defined before the listen() function.'
@@ -21,7 +21,7 @@ export default new Adapter({
         return
       }
       
-      const response = (await this.onRequest(new ExpressRequest(req))).toResponse()
+      const response = (await this.onRequest(createExpressRequest(req))).toResponse()
       res.status(response.status)
         .set(Object.fromEntries(response.headers))
         .send(await response.text())

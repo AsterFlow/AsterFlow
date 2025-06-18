@@ -1,36 +1,42 @@
 import type { Runtime } from '@asterflow/adapter'
 import { Analyze } from '@asterflow/url-parser'
-import type { RequestType } from '../types/request'
+import type { RequestAbstract, RequestType } from '../types/request'
 
-export abstract class Request<
-  Drive extends Runtime = Runtime.Node,
->{
+export class AsterRequest<
+  const Drive extends Runtime = Runtime.Node,
+  const Extension extends Record<string, any> = {}
+> implements RequestAbstract {
   raw: RequestType[Drive]
-  public url: Analyze<string>
+  url: Analyze<string>
+  private base: RequestAbstract
 
-  constructor(request: RequestType[Drive]) {
+  constructor(request: RequestType[Drive], base: RequestAbstract) {
     this.raw = request
-    this.url = new Analyze(this.getPathname())
+    this.url = new Analyze(base.getPathname()) 
+    
+    this.base = base
   }
 
-  /**
-   * Read and parse the request body.
-   * Supports JSON and application/x-www-form-urlencoded.
-   */
-  abstract getBody(): Promise<unknown> | unknown
+  getBody() { return this.base.getBody() }
+  getHeaders() { return this.base.getHeaders() }
+  getMethod() { return this.base.getMethod() }
+  getPathname() { return this.base.getPathname() }
 
-  /**
-   * Return all headers as a Record<string, string>, joining multiple values with commas.
-   */
-  abstract getHeaders(): Record<string, string>
-
-  /**
-   * Returns the HTTP method of the request (GET, POST, etc.).
-   */
-  abstract getMethod(): string
-
-  /**
-   * Compose the full URL string: protocol://host[:port]/path?query
-   */
-  abstract getPathname(): string
+  extend<E extends Record<string, any>>(extension: E) {
+    Object.assign(this, extension)
+    
+    return this as unknown as Request<Drive, Extension & E>
+  }
 }
+
+export type Request<
+  Drive extends Runtime = Runtime.Node,
+  Extension extends Record<string, any> = {}
+> = AsterRequest<Drive, Extension> & Extension;
+
+export const Request: {
+  new <Drive extends Runtime = Runtime.Node>(
+    request: RequestType[Drive],
+    base: RequestAbstract
+  ): Request<Drive, {}>
+} = AsterRequest
