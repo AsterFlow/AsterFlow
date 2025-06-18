@@ -1,10 +1,10 @@
 import { adapters, Runtime, type Adapter, type AnyAdapter } from '@asterflow/adapter'
 import type {
-  AnyPlugin,
   AnyPluginInstance,
   AnyPlugins,
   InferConfigArgument,
   InferPluginExtension,
+  Plugin,
   ResolvedPlugin
 } from '@asterflow/plugin'
 import type { Request } from '@asterflow/request'
@@ -14,6 +14,7 @@ import {
   MethodType,
   Router,
   type AnyMiddleware,
+  type AnyMiddlewares,
   type AnyRouter,
   type AnySchema,
   type MethodHandler,
@@ -36,14 +37,15 @@ import type {
   BuildRoutesContext,
   RouteEntry
 } from '../types/routes'
+import type { AnyRecord } from '../types/utils'
 import { joinPaths } from '../utils/parser'
 
 export class AsterFlowInstance<
   const Drive extends AnyAdapter = Adapter<Runtime.Node>,
   const Routers extends AnyReminist = AnyReminist,
-  const Plugins extends Record<string, ResolvedPlugin<AnyPlugin>> = {},
-  const Middlewares extends readonly AnyMiddleware[] = [],
-  const Extension extends Record<string, any> = {}
+  const Plugins extends AnyPlugins = {},
+  const Middlewares extends AnyMiddlewares = [],
+  const Extension extends AnyRecord = {}
 > {
   readonly driver: Drive
   readonly reminist: Routers = new Reminist({ keys: Object.keys(MethodType) }) as Routers
@@ -62,54 +64,13 @@ export class AsterFlowInstance<
   }
 
   /**
-   * Executes a route handler, processing the request and response.
-   * Performs schema validation, if present, and invokes the route handler.
-   */
-  async executeHandler(routeEntry: RouteEntry<string, AnyRouter>, request: Request<any>, response: AsterResponse) {
-    const { route } = routeEntry
-    const method = request.getMethod().toLowerCase() as MethodType
-    const handler = route instanceof Method ? route.handler : route.methods[method]
-    const schema = route instanceof Method ? route.schema : route.schema?.[method]
-  
-    if (!handler) return null
-    if (schema) {
-      const schemaResult = schema.safeParse(request.getBody())
-      if (!schemaResult.success) {
-        return response.validationError({
-          statusCode: 422,
-          message: 'VALIDATION_ERROR',
-          error: schemaResult.error
-        })
-      }
-      response.send(schemaResult.data)
-    }
-  
-    const pluginContext = Object.values(this.plugins).reduce((acc, plugin) => ({ ...acc, ...plugin.context }), {}) as MergedPluginContexts<Plugins>
-    const context = {
-      instance: this,
-      request,
-      response,
-      url: request.url,
-      schema: request.getBody(),
-      middleware: {},
-      plugins: pluginContext
-    }
-  
-    return handler(context)
-  }
-
-  /**
    * Handles incoming requests, executing `onRequest` and `onResponse` plugin hooks.
    * Finds the matching route and executes its handler. Manages errors and "not found" responses.
    */
   private async handleRequest(request: Request<Drive['runtime']>, response: AsterResponse) {
-    response = response ?? new Response()
+    response = response ?? new AsterResponse()
 
-    for (const plugin of this.onRequestPlugins) {
-      for (const handler of plugin.hooks.onRequest!) {
-        await handler({ request, response, context: plugin.context })
-      } 
-    }
+    await this.runHooks('onRequest', request, response)
 
     const notFound = () => response.notFound({
       statusCode: 404,
@@ -127,13 +88,8 @@ export class AsterFlowInstance<
     request.url = request.url.withParser(routeEntry.route.url) as any
 
     try {
-      await this.executeHandler(routeEntry, request, response)
-
-      for (const plugin of this.onResponsePlugins) {
-        for (const handler of plugin.hooks.onResponse!) {
-          await handler({ response, context: plugin.context, request })
-        }
-      }
+      await this.runHandler(routeEntry, request, response)
+      await this.runHooks('onResponse', request, response)
 
       return response
     } catch (err) {
@@ -156,7 +112,7 @@ export class AsterFlowInstance<
   >(options: { basePath: BasePath; controllers: Routes }) {
     for (const route of options.controllers) {
       const path = joinPaths(options.basePath, route.url.getPathname())
-      this.addRouteEntry(route, path)
+      this.addEntry(route, path)
     }
 
     return this as unknown as AsterFlow<
@@ -180,7 +136,7 @@ export class AsterFlowInstance<
    */
   controller<Route extends AnyRouter>(router: Route) {
     const path = joinPaths('/', router.url.getPathname())
-    this.addRouteEntry(router, path)
+    this.addEntry(router, path)
 
     return this as unknown as AsterFlow<
       Drive,
@@ -201,7 +157,10 @@ export class AsterFlowInstance<
    * Registers a plugin and its configuration with the AsterFlow instance.
    * Applies any instance extensions defined by the plugin.
    */
-  use<P extends AnyPlugin>(plugin: P, config?: InferConfigArgument<P>) {
+  use<Plug extends Plugin<any, any, any, any, any, any>>(
+    plugin: Plug,
+    config?: InferConfigArgument<Plug>
+  ) {
     const pluginInstance = plugin.defineInstance(this)
     const builtPlugin = pluginInstance._build(config);
     
@@ -217,12 +176,12 @@ export class AsterFlowInstance<
       Object.assign(this, extension)
     }
     
-    return this as unknown as AsterFlow<
+    return this as AsterFlow<
       Drive,
       Routers,
-      Plugins & { [K in P['name']]: ResolvedPlugin<P> },
+      Plugins & { [K in Plug['name']]: ResolvedPlugin<Plug> },
       Middlewares,
-      Extension & InferPluginExtension<P>
+      Extension & InferPluginExtension<Plug>
     >
   }
 
@@ -317,33 +276,88 @@ export class AsterFlowInstance<
   }
 
   /**
-   * Executes the hook handlers for a specific hook name.
-   */
-  private async runHooks(hookName: 'beforeInitialize' | 'afterInitialize'): Promise<void> {
-    const plugins = this[`${hookName}Plugins`]
-    for (const plugin of plugins) {
-      const handlers = plugin.hooks[hookName]
-      if (handlers) {
-        for (const handler of handlers) {
-          await handler(this, plugin.context)
-        }
-      }
-    }
-  }
-
-  /**
    * Adds a route entry to Reminist, associating it with specific HTTP methods.
    * Normalizes the route path and registers it for each supported method.
    */
-  private addRouteEntry(route: AnyRouter, path: string): void {
-    route.url = new Analyze(path)
-    const methods = route instanceof Method ? [route.method] : Object.keys(route.methods)
-    const routeEntry: RouteEntry<string, AnyRouter> = { path, route, methods }
+  private addEntry(entry: AnyRouter, path: string): void {
+    entry.url = new Analyze(path)
+    const methods = entry instanceof Method ? [entry.method] : Object.keys(entry.methods)
+    const routeEntry: RouteEntry<string, AnyRouter> = { path, route: entry, methods }
 
     for (const method of methods) {
       this.reminist.add(method as MethodKeys, path, routeEntry)
     }
   }
+
+  /**
+   * Executes the hook handlers for a specific hook name.
+   */
+  private async runHooks(
+    hookName: 'beforeInitialize' | 'afterInitialize' | 'onRequest' | 'onResponse',
+    request?: Request<Drive['runtime']>,
+    response?: AsterResponse
+  ): Promise<void> {
+    const plugins = this[`${hookName}Plugins`]
+    for (const plugin of plugins) {
+      switch (hookName) {
+      case 'beforeInitialize':
+      case 'afterInitialize': {
+        const handlers = plugin.hooks[hookName]
+        if (handlers) {
+          for (const handler of handlers) {
+            await handler(this, plugin.context)
+          }
+        }
+      }
+        break
+      case 'onRequest':
+      case 'onResponse': {
+        if (!request || !response) return
+
+        for (const handler of plugin.hooks.onRequest!) {
+          await handler({ request, response, context: plugin.context })
+        } 
+      }
+      }
+    }
+  }
+
+  /**
+   * Executes a route handler, processing the request and response.
+   * Performs schema validation, if present, and invokes the route handler.
+   */
+  private async runHandler({ route }: RouteEntry<string, AnyRouter>, request: Request<any>, response: AsterResponse) {
+    const method = request.getMethod().toLowerCase() as MethodType
+    const handler = route instanceof Method ? route.handler : route.methods[method]
+    const schema = route instanceof Method ? route.schema : route.schema?.[method]
+  
+    if (!handler) return null
+    if (schema) {
+      const schemaResult = schema.safeParse(request.getBody())
+      if (!schemaResult.success) {
+        return response.validationError({
+          statusCode: 422,
+          message: 'VALIDATION_ERROR',
+          error: schemaResult.error
+        })
+      }
+      response.send(schemaResult.data)
+    }
+  
+    const pluginContext = Object.values(this.plugins).reduce((acc, plugin) => ({ ...acc, ...plugin.context }), {}) as MergedPluginContexts<Plugins>
+    const context = {
+      instance: this,
+      request,
+      response,
+      url: request.url,
+      schema: request.getBody(),
+      middleware: {},
+      plugins: pluginContext
+    }
+  
+    return handler(context)
+  }
+
 }
 
 export type AsterFlow<
@@ -364,4 +378,4 @@ export const AsterFlow: {
  * Represents a generic AsterFlow instance, with all its types defined as `any`.
  * This allows flexibility when referencing AsterFlow without specifying all its type parameters.
  */
-export type AnyAsterflow = AsterFlowInstance<any, any, any, any, any>
+export type AnyAsterflow = AsterFlowInstance<AnyAdapter, AnyReminist, AnyPlugins, AnyMiddlewares, AnyRecord>

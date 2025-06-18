@@ -1,28 +1,29 @@
  
 import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
 import type { PluginHooks, Resolver } from '../types/plugin'
+import type { Prettify, UnionToIntersection } from '../types/utils'
 
 export class Plugin<
-  Path extends string,
-  Instance extends AnyAsterflow,
+  Path extends string = string,
+  Instance extends AnyAsterflow = AnyAsterflow,
   Config extends Record<string, any> = {},
-  Context extends Record<string, any> = {},
-  Hooks extends PluginHooks<any, Context[], any> = {},
+  Decorate extends Record<string, any> = {},
+  Derive extends Record<string, any> = {},
   Extension extends Record<string, any> = {}
 > {
   public readonly name: Path
-  private readonly resolvers: Resolver[]
-  public readonly defaultConfig: Partial<Config>
-  public readonly hooks: Hooks
+  public resolvers: Resolver[]
+  public defaultConfig: Partial<Config>
+  public hooks: PluginHooks<any, Decorate, any> = {}
   public instance!: Instance
-  private readonly _extensionFn?: (app: Instance, context: Context) => Extension
+  private _extensionFn?: (app: Instance, context: Prettify<UnionToIntersection<Config & Decorate & Derive>>) => Extension
 
   private constructor(
     name: Path,
     resolvers: Resolver[],
-    hooks: Hooks,
+    hooks: PluginHooks<any, Decorate, any>,
     defaultConfig: Partial<Config>,
-    extensionFn?: (app: Instance, context: Context) => Extension
+    extensionFn?: (app: Instance, context: Prettify<UnionToIntersection<Config & Decorate & Derive>>) => Extension
   ) {
     this.name = name
     this.resolvers = resolvers
@@ -35,13 +36,12 @@ export class Plugin<
    * Defines the shape of the configuration and its default values for this plugin.
    */
   config<C extends Record<string, any>>(defaultConfig: C) {
-    return new Plugin<Path, Instance, C, Context, Hooks, Extension>(
-      this.name,
-      this.resolvers,
-      this.hooks,
-      defaultConfig,
-      this._extensionFn
-    )
+    this.defaultConfig = {
+      ...this.defaultConfig,
+      defaultConfig
+    } as Partial<Config>
+
+    return this as unknown as Plugin<Path, Instance, Prettify<UnionToIntersection<{ defaultConfig: C } | C | Config>>, Decorate, Derive, Extension>
   }
   
   /**
@@ -62,13 +62,8 @@ export class Plugin<
       [key]: value
     })
 
-    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Value }, Hooks, Extension>(
-      this.name,
-      [...this.resolvers, resolver],
-      this.hooks,
-      this.defaultConfig,
-      this._extensionFn
-    )
+    this.resolvers = [...this.resolvers, resolver]
+    return this as unknown as Plugin<Path, Instance, Config, Prettify<UnionToIntersection<Decorate | { [K in Key]: Value }>>, Derive, Extension>
   }
 
   /**
@@ -77,24 +72,19 @@ export class Plugin<
    */
   derive<Key extends string, Value>(
     key: Key,
-    resolverFn: (context: Context & Config) => Value | Promise<Value>
+    resolverFn: (context: Derive & Config & Decorate) => Value | Promise<Value>
   ) {
     const resolver: Resolver = async (config, context) => {
       const fullContext = { ...context, ...config }
-      const derivedValue = await resolverFn(fullContext as Context & Config)
+      const derivedValue = await resolverFn(fullContext)
       return {
         ...context,
         [key]: derivedValue
       }
     }
 
-    return new Plugin<Path, Instance, Config, Context & { [K in Key]: Awaited<Value> }, Hooks, Extension>(
-      this.name,
-      [...this.resolvers, resolver],
-      this.hooks,
-      this.defaultConfig,
-      this._extensionFn
-    )
+    this.resolvers = [...this.resolvers, resolver]
+    return this as unknown as Plugin<Path, Instance, Config, Decorate, Prettify<UnionToIntersection<Derive | { [K in Key]: Awaited<Value> }>>, Extension>
   }
 
   /**
@@ -108,30 +98,19 @@ export class Plugin<
    *   .on('beforeInitialize', (app, context) => { });
    */
   on<
-    Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>,
+    Event extends keyof PluginHooks<ExtendedAsterflow<Instance>, Prettify<UnionToIntersection<Derive | Config | Decorate>>, Extension>,
   >(
     event: Event,
-    handler: NonNullable<PluginHooks<ExtendedAsterflow<Instance>, Context & Config, Extension>[Event]>[number]
+    handler: NonNullable<PluginHooks<ExtendedAsterflow<Instance>, Prettify<UnionToIntersection<Derive | Config | Decorate>>, Extension>[Event]>[number]
   ) {
     const existingHandlers = (this.hooks[event] as any[]) || []
-    const newHooks = {
+    this.hooks = {
       ...this.hooks,
       [event]: [...existingHandlers, handler]
     }
 
-    type NewHooks = Omit<Hooks, Event> & {
-      [K in Event]: [
-        ...(Hooks extends { [k in Event]: any[] } ? Hooks[K] : []),
-      ]
-    };
     
-    return new Plugin<Path, Instance, Config, Context, NewHooks, Extension>(
-      this.name,
-      this.resolvers,
-      newHooks as unknown as NewHooks,
-      this.defaultConfig,
-      this._extensionFn
-    )
+    return this
   }
 
   /**
@@ -140,25 +119,24 @@ export class Plugin<
    * com as novas propriedades.
    */
   extends<E extends Record<string, any>>(
-    extensionFn: (app: ExtendedAsterflow<Instance>, context: Context) => E
+    extensionFn: (app: Instance, context: Prettify<UnionToIntersection<Config | Derive | Decorate>>) => E
   ) {
-    return new Plugin<Path, ExtendedAsterflow<Instance>, Config, Context, Hooks, Extension & E>(
-      this.name,
-      this.resolvers,
-      this.hooks,
-      this.defaultConfig,
-      (app, context) => {
-        const prev = this._extensionFn ? this._extensionFn(app, context) : {} as Extension
-        return { ...prev, ...extensionFn(app, context) } as Extension & E
-      }
-    )
+    const previousExtensionFn = this._extensionFn
+
+    this._extensionFn = (app, context) => {
+      const prev = previousExtensionFn ? previousExtensionFn(app, context) : {} as Extension
+      
+      return { ...prev, ...extensionFn(app, context) }
+    }
+
+    return this as Plugin<Path, Instance, Config, Decorate, Derive, Prettify<UnionToIntersection<Extension & E>>>
   }
 
   /**
    * Builds the final context and hooks from the provided configuration.
    */
   _build(config: any) {
-    const finalConfig = { ...this.defaultConfig, ...config } as Config & Context
+    const finalConfig = { ...this.defaultConfig, ...config } as Config & Derive & Decorate
 
     return {
       name: this.name,
@@ -174,17 +152,7 @@ export class Plugin<
    */
   static create<Path extends string, Asterflow extends AnyAsterflow>(
     options: { name: Path }
-  ): Plugin<Path, Asterflow, {}, {}, {}> {
+  ): Plugin<Path, Asterflow, {}, {}, {}, {}> {
     return new Plugin(options.name, [], {}, {}, undefined)
-  }
-
-  static instance<T extends AnyAsterflow>() {
-    return {
-      create: <Path extends string>(options: { name: Path }): Plugin<Path, T, {}, {}, {}, {}> => {
-        return new Plugin<Path, T, {}, {}, {}, {}>(
-          options.name, [], {}, {}, undefined
-        )
-      }
-    }
   }
 }

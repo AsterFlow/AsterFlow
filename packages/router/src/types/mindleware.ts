@@ -5,6 +5,7 @@ import type { Middleware } from '../controllers/Middleware'
 import type { AnySchema, InferSchema } from './schema'
 
 export type AnyMiddleware = Middleware<any, any, any, any>
+export type AnyMiddlewares = readonly AnyMiddleware[]
 
 /**
  * Accumulate the output types (`P`) from an array of middlewares into a single object

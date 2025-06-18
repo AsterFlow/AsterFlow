@@ -26,7 +26,7 @@ export type RouteHandler<
   url: Analyze<Path, ParsePath<Path>, Analyze<Path>>
   schema: InferredData<Method, Schema>;
   middleware: Context
-}) => Promise<Response> | Response
+}) => Promise<AsterResponse> | AsterResponse
 
 export type RouterOptions<
   Path extends string,
