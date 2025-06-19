@@ -1,6 +1,7 @@
 import type { AnyRouter, MethodKeys } from '@asterflow/router'
 import type { CombinePaths, InferPath, NormalizePath } from './paths'
 import type { UnionToIntersection } from './utils'
+import type { Analyze } from '@asterflow/url-parser'
 
 /**
  * Builds the context for a single route, inferring the path and associating the route entry.
@@ -39,4 +40,5 @@ export type RouteEntry<
   readonly path: Path
   readonly route: Route
   readonly methods: readonly MethodKeys[]
+  readonly url: Analyze<string>
 }

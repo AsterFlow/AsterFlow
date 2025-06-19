@@ -1,5 +1,4 @@
 import type { Responders } from '@asterflow/response'
-import { Analyze } from '@asterflow/url-parser'
 import type { MethodKeys } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { RouteHandler, RouterOptions } from '../types/router'
@@ -20,7 +19,6 @@ export class Router<
   description?: string
   methods: Routers
   use?: Middlewares
-  url: Analyze<Path>
 
   constructor(options: RouterOptions<Path, Schema, Responder, Middlewares, Context, Routers>) {
     const { name, path, schema, description, methods } = options
@@ -30,7 +28,6 @@ export class Router<
     this.description = description
     this.methods = methods
     this.use = options.use
-    this.url = new Analyze(this.path)
   }
 
   static create<Responder extends Responders>() {

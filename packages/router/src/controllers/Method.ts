@@ -1,7 +1,6 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from '@asterflow/core'
 import type { Responders } from '@asterflow/response'
-import { Analyze } from '@asterflow/url-parser'
 import type { MethodHandler, MethodKeys, MethodOptions } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
@@ -19,7 +18,6 @@ export class Method<
   const Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance> = MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance>,
 >{
   path: Path
-  url: Analyze<Path>
   method: Method
   schema?: Schema
   
@@ -29,7 +27,6 @@ export class Method<
 
   constructor (options: MethodOptions<Responder, Path, Drive, Method, Schema, Middlewares, Context, Instance, Handler>) {
     this.path = options.path
-    this.url = new Analyze(this.path)
     this.method = options.method
     this.schema = options.schema
     this.handler = options.handler

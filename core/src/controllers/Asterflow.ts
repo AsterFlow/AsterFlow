@@ -85,7 +85,7 @@ export class AsterFlowInstance<
     if (!routeMatch?.node?.store) return notFound()
 
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
-    request.url = request.url.withParser(routeEntry.route.url) as any
+    request.url = request.url.withParser(routeEntry.url) as any
 
     try {
       await this.runHandler(routeEntry, request, response)
@@ -111,7 +111,7 @@ export class AsterFlowInstance<
     const Routes extends readonly AnyRouter[]
   >(options: { basePath: BasePath; controllers: Routes }) {
     for (const route of options.controllers) {
-      const path = joinPaths(options.basePath, route.url.getPathname())
+      const path = joinPaths(options.basePath, route.path)
       this.addEntry(route, path)
     }
 
@@ -135,7 +135,7 @@ export class AsterFlowInstance<
    * The controller's path is normalized to be relative to the root.
    */
   controller<Route extends AnyRouter>(router: Route) {
-    const path = joinPaths('/', router.url.getPathname())
+    const path = joinPaths('/', router.path)
     this.addEntry(router, path)
 
     return this as unknown as AsterFlow<
@@ -280,9 +280,8 @@ export class AsterFlowInstance<
    * Normalizes the route path and registers it for each supported method.
    */
   private addEntry(entry: AnyRouter, path: string): void {
-    entry.url = new Analyze(path)
     const methods = entry instanceof Method ? [entry.method] : Object.keys(entry.methods)
-    const routeEntry: RouteEntry<string, AnyRouter> = { path, route: entry, methods }
+    const routeEntry: RouteEntry<string, AnyRouter> = { path, route: entry, methods, url: new Analyze(path) }
 
     for (const method of methods) {
       this.reminist.add(method as MethodKeys, path, routeEntry)

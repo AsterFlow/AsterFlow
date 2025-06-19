@@ -21,7 +21,7 @@
     },
     "core": {
       "name": "@asterflow/core",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "dependencies": {
         "@asterflow/adapter": "workspace:../packages/adapter",
         "@asterflow/plugin": "workspace:../packages/plugin",
@@ -39,6 +39,7 @@
       "name": "exemple",
       "version": "1.0.0",
       "dependencies": {
+        "@asterflow/adapter": "workspace:../packages/adapter",
         "@asterflow/core": "workspace:../core",
         "@asterflow/plugin": "workspace:../packages/plugin",
         "@asterflow/request": "workspace:../packages/request",
@@ -54,7 +55,7 @@
     },
     "packages/adapter": {
       "name": "@asterflow/adapter",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "dependencies": {
         "@asterflow/request": "workspace:../request",
         "@asterflow/response": "workspace:../response",
@@ -71,7 +72,7 @@
     },
     "packages/plugin": {
       "name": "@asterflow/plugin",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "devDependencies": {
         "@asterflow/core": "workspace:../../core",
         "@asterflow/request": "workspace:../request",
@@ -83,7 +84,7 @@
     },
     "packages/request": {
       "name": "@asterflow/request",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "dependencies": {
         "@asterflow/router": "workspace:../router",
         "@asterflow/url-parser": "^2.0.1",
@@ -98,17 +99,14 @@
     },
     "packages/response": {
       "name": "@asterflow/response",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "peerDependencies": {
         "typescript": "^5.8.3",
       },
     },
     "packages/router": {
       "name": "@asterflow/router",
-      "version": "1.0.7",
-      "dependencies": {
-        "@asterflow/url-parser": "^2.0.1",
-      },
+      "version": "1.0.8",
       "devDependencies": {
         "@asterflow/core": "workspace:../../core",
         "@asterflow/request": "workspace:../request",
