@@ -10,7 +10,7 @@
 ![code-size](https://img.shields.io/github/languages/code-size/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
 
 ![top-language](https://img.shields.io/github/languages/top/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=90dceb)
-![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+![bundle-size](https://img.shields.io/bundlejs/size/asterflow?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
 </div>
 
@@ -37,7 +37,7 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlo
 
 | Package | Description |
 | --------------------- | --------------------------------------------------------------------------------- |
-| `@asterflow/core` | The heart of the framework, providing server initialization and configuration with strong typing |
+| `asterflow` | The heart of the framework, providing server initialization and configuration with strong typing |
 | `@asterflow/adapter` | HTTP adapters for different runtimes (Node.js, Bun, Express, Fastify) |
 | `@asterflow/request` | Unified HTTP request adapter system |
 | `@asterflow/response` | Type-safe HTTP response system with status helpers and runtime compatibility |
@@ -47,7 +47,7 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlo
 
 ```bash
 # You can use any package manager - npm, pnpm, bun, etc.
-npm install @asterflow/core
+npm install asterflow
 ```
 
 ### ✨ Features
@@ -67,7 +67,7 @@ npm install @asterflow/core
 ### 🚀 Basic Setup
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import fastify from 'fastify'
 
@@ -177,7 +177,7 @@ export default new Method({
   <summary>Express Example</summary>
 
 ```ts
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import express from 'express'
 
@@ -203,7 +203,7 @@ aster.listen(app, 3000)
   <summary>Node.js HTTP Example</summary>
 
 ```ts
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import { createServer } from 'http'
 
@@ -226,7 +226,7 @@ aster.listen(server, { port: 3000 })
   <summary>Bun Example</summary>
 
 ```ts
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 
 const aster = new AsterFlow({ 

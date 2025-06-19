@@ -1,5 +1,5 @@
  
-import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
+import type { AnyAsterflow, ExtendedAsterflow } from 'asterflow'
 import type { PluginHooks, Resolver } from '../types/plugin'
 import type { Prettify, UnionToIntersection } from '../types/utils'
 

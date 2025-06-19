@@ -110,7 +110,7 @@ createServer(async (req, res) => {
 
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
 - [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
 - [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system

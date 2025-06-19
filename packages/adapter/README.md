@@ -43,7 +43,7 @@ bun install @asterflow/adapter
 ### Basic Example
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import { Router } from '@asterflow/router'
 
@@ -74,7 +74,7 @@ app.listen({ port: 3000 })
 #### Node.js HTTP Server
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 
 const app = new AsterFlow({
@@ -87,7 +87,7 @@ app.listen({ port: 3000 })
 #### Bun
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 
 const app = new AsterFlow({
@@ -100,7 +100,7 @@ app.listen({ port: 3000 })
 #### Express
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import express from 'express'
 
@@ -118,7 +118,7 @@ app.listen(expressApp, 3000)
 #### Fastify
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import fastify from 'fastify'
 
@@ -175,7 +175,7 @@ interface ErrorPayload {
 
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
 - [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system

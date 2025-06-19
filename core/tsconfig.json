@@ -28,7 +28,7 @@
     "baseUrl": ".",
     "paths": {
       "@asterflow/*": ["../packages/*/src/index.ts"],
-      "@asterflow/core": ["./src/index.ts"]
+      "asterflow": ["./src/index.ts"]
     }
   }
 }

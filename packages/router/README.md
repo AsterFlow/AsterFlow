@@ -131,7 +131,7 @@ const router = new Router({
 
 ```typescript
 import { adapters } from '@asterflow/adapter'
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import fastify from 'fastify'
 
 const server = fastify()
@@ -154,7 +154,7 @@ app.listen(server, { port: 3333 }, (err) => {
 
 ## 🔗 Related Packages
 
-- [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - Core framework
+- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
 - [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - Adapters for different HTTP servers
 - [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
 - [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system

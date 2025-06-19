@@ -1,5 +1,5 @@
 import type { Runtime } from '@asterflow/adapter'
-import type { AnyAsterflow } from '@asterflow/core'
+import type { AnyAsterflow } from 'asterflow'
 import type { Responders } from '@asterflow/response'
 import type { MethodHandler, MethodKeys, MethodOptions } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'

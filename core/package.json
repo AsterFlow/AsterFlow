@@ -1,5 +1,5 @@
 {
-  "name": "@asterflow/core",
+  "name": "asterflow",
   "version": "1.0.8",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",

@@ -1,12 +1,12 @@
 <div align="center">
 
-# @asterflow/core
+# Asterflow
 
 ![license-info](https://img.shields.io/github/license/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
 ![stars-info](https://img.shields.io/github/stars/AsterFlow/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
 ![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=core&style=for-the-badge&colorA=302D41&colorB=b4befe)
 
-![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/core?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+![bundle-size](https://img.shields.io/bundlejs/size/asterflow?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
 </div>
 
@@ -15,14 +15,14 @@
 ## 📦 Installation
 
 ```bash
-npm install @asterflow/core
+npm install asterflow
 # or
-bun install @asterflow/core
+bun install asterflow
 ```
 
 ## 💡 About
 
-@asterflow/core is the central package of the AsterFlow framework. It provides server initialization, integration with different HTTP adapters, and a typed routing system. The package brings together all other AsterFlow components into a cohesive framework.
+Asterflow is the central package of the AsterFlow framework. It provides server initialization, integration with different HTTP adapters, and a typed routing system. The package brings together all other AsterFlow components into a cohesive framework.
 
 ## ✨ Features
 
@@ -38,7 +38,7 @@ bun install @asterflow/core
 ### Basic Setup
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import fastify from 'fastify'
 

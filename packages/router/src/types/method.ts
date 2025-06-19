@@ -1,5 +1,5 @@
 import type { Runtime } from '@asterflow/adapter'
-import type { AnyAsterflow } from '@asterflow/core'
+import type { AnyAsterflow } from 'asterflow'
 import type { AsterRequest } from '@asterflow/request'
 import type { Responders, AsterResponse } from '@asterflow/response'
 import type { Analyze, ParsePath } from '@asterflow/url-parser'

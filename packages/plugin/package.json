@@ -18,7 +18,7 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@asterflow/core": "workspace:../../core",
+    "asterflow": "workspace:../../core",
     "@asterflow/response": "workspace:../response",
     "@asterflow/request": "workspace:../request"
   },

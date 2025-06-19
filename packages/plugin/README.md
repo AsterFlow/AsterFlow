@@ -113,7 +113,7 @@ const loggerPlugin = Plugin.create({ name: 'logger-plugin' })
 To use the created plugins, you register them with the `AsterFlow` instance.
 
 ```typescript
-import { AsterFlow } from '@asterflow/core'
+import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import fastify from 'fastify'
 // Import your plugins here
@@ -140,7 +140,7 @@ app.listen(server, { port: 3000 }, (err) => {
 
 ## 🔗 Related Packages
 
--   [@asterflow/core](https://www.npmjs.com/package/@asterflow/core) - The heart of the AsterFlow framework.
+-   [asterflow](https://www.npmjs.com/package/asterflow) - The heart of the AsterFlow framework.
 -   [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes.
 -   [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system.
 -   [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system.

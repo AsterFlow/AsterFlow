@@ -1,6 +1,6 @@
  
 import type { Runtime } from '@asterflow/adapter'
-import type { AnyAsterflow, ExtendedAsterflow } from '@asterflow/core'
+import type { AnyAsterflow, ExtendedAsterflow } from 'asterflow'
 import type { Request } from '@asterflow/request'
 import type { AsterResponse, Prettify } from '@asterflow/response'
 import type { Plugin } from '../controllers/Plugin'
