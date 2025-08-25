@@ -26,10 +26,10 @@ import {
   type RouterOptions,
   type SchemaDynamic
 } from '@asterflow/router'
-import { Analyze, ErrorLog } from '@asterflow/url-parser'
+import { Analyze, ErrorLog, InternalExpression, type NormalizePath } from '@asterflow/url-parser'
 import { Reminist } from 'reminist'
 import type { AsterFlowOptions } from '../types/asterflow'
-import type { ExtractPaths, InferPath, NormalizePath } from '../types/paths'
+import type { ExtractPaths, InferPath } from '../types/paths'
 import type { MergedPluginContexts } from '../types/plugin'
 import type { AnyReminist, InferReministContext, InferReministPath } from '../types/reminist'
 import type {
