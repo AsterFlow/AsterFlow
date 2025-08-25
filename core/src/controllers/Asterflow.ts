@@ -85,8 +85,15 @@ export class AsterFlowInstance<
     if (!routeMatch?.node?.store) return notFound()
 
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
-    request.url = request.url.withParser(routeEntry.url) as any
 
+    // Parser /:id and [...slug]
+    if (
+      routeEntry.url.ast.expressions.has(InternalExpression.Variable) 
+      || routeEntry.url.ast.expressions.has(InternalExpression.Ellipsis)
+    ) {
+      request.url = request.url.withParser(routeEntry.url)
+    }
+    
     try {
       await this.runHandler(routeEntry, request, response)
       await this.runHooks('onResponse', request, response)
