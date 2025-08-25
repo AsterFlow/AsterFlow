@@ -7,7 +7,7 @@ export class AsterRequest<
   const Extension extends Record<string, any> = {}
 > implements RequestAbstract {
   raw: RequestType[Drive]
-  url: Analyze<string>
+  url: Analyze<string, any, any>
   private base: RequestAbstract
 
   constructor(request: RequestType[Drive], base: RequestAbstract) {

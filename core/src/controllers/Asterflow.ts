@@ -100,12 +100,11 @@ export class AsterFlowInstance<
 
       return response
     } catch (err) {
-      const errorPayload = {
+      return response.badRequest({
         statusCode: 400,
         message: err instanceof ErrorLog ? 'AST_ERROR' : 'ERROR',
         error: err instanceof ErrorLog ? err.message : err
-      }
-      return response.badRequest(errorPayload)
+      })
     }
   }
   
