@@ -22,10 +22,10 @@
   },
   "dependencies": {
     "@asterflow/router": "workspace:../router",
-    "@asterflow/url-parser": "^2.0.1"
+    "@asterflow/url-parser": "^2.0.3"
   },
   "devDependencies": {
     "@asterflow/adapter": "workspace:../adapter",
-    "undici-types": "^7.10.0"
+    "undici-types": "^7.15.0"
   }
 }

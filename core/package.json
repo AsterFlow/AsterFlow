@@ -27,11 +27,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "bun run --inspect=ws://localhost:6499 src/index.ts",
-    "exemple": "bun run --inspect-brk=ws://localhost:6499 src/exemple.ts"
+    "dev": "bun run --inspect=ws://localhost:6499 src/index.ts"
   },
   "peerDependencies": {
-    "zod": "^3.25.63",
+    "zod": "^3.25.67",
     "typescript": "^5.8.3"
   },
   "dependencies": {
@@ -39,7 +38,7 @@
     "@asterflow/plugin": "workspace:../packages/plugin",
     "@asterflow/response": "workspace:../packages/response",
     "@asterflow/router": "workspace:../packages/router",
-    "@asterflow/url-parser": "^2.0.1",
+    "@asterflow/url-parser": "^2.0.3",
     "reminist": "^1.0.5"
   }
 }
