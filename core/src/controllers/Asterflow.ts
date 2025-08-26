@@ -86,12 +86,12 @@ export class AsterFlowInstance<
 
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
 
-    // Parser /:id and [...slug]
+    // Parser /:id, [...slug] and [slug]
     if (
       routeEntry.url.ast.expressions.has(InternalExpression.Variable) 
-      || routeEntry.url.ast.expressions.has(InternalExpression.Ellipsis)
+      || routeEntry.url.ast.expressions.has(InternalExpression.Slug)
     ) {
-      request.url = request.url.withParser(routeEntry.url)
+      request.url = request.url.withParser(routeEntry.url as any)
     }
     
     try {
