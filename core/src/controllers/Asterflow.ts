@@ -70,7 +70,9 @@ export class AsterFlowInstance<
   private async handleRequest(request: Request<Drive['runtime']>, response: AsterResponse) {
     response = response ?? new AsterResponse()
 
-    await this.runHooks('onRequest', request, response)
+    // Execute onRequest hooks - if any plugin returns a response, return it immediately
+    const onRequestResult = await this.runHooks('onRequest', request, response)
+    if (onRequestResult) return onRequestResult
 
     const notFound = () => response.notFound({
       statusCode: 404,
@@ -296,12 +298,13 @@ export class AsterFlowInstance<
 
   /**
    * Executes the hook handlers for a specific hook name.
+   * For onRequest hooks, returns the response if any plugin returns one (to stop execution flow).
    */
   private async runHooks(
     hookName: 'beforeInitialize' | 'afterInitialize' | 'onRequest' | 'onResponse',
     request?: Request<Drive['runtime']>,
     response?: AsterResponse
-  ): Promise<void> {
+  ): Promise<AsterResponse | void> {
     const plugins = this[`${hookName}Plugins`]
     for (const plugin of plugins) {
       switch (hookName) {
@@ -315,14 +318,32 @@ export class AsterFlowInstance<
         }
       }
         break
-      case 'onRequest':
+      case 'onRequest': {
+        if (!request || !response) return
+
+        const handlers = plugin.hooks.onRequest
+        if (handlers) {
+          for (const handler of handlers) {
+            const result = await handler({ request, response, context: plugin.context })
+            // If handler returns a response, stop execution and return it
+            if (result && typeof result === 'object' && result.constructor?.name === 'AsterResponse') {
+              return result as AsterResponse
+            }
+          }
+        }
+      }
+        break
       case 'onResponse': {
         if (!request || !response) return
 
-        for (const handler of plugin.hooks.onRequest!) {
-          await handler({ request, response, context: plugin.context })
-        } 
+        const handlers = plugin.hooks.onResponse
+        if (handlers) {
+          for (const handler of handlers) {
+            await handler({ request, response, context: plugin.context })
+          }
+        }
       }
+        break
       }
     }
   }
