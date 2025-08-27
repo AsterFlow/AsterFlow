@@ -1,13 +1,29 @@
-import { type Runtime } from '@asterflow/adapter'
-import type { Request as ERequest } from 'express'
-import { Request } from '../controllers/Request'
+import type { Runtime } from '@asterflow/adapter'
+import type { Request as ExpressRequest } from 'express'
+import { Request as AsterRequest } from '../controllers/Request'
 import type { RequestAbstract } from '../types/request'
 
-export function createExpressRequest(request: ERequest) {
+/**
+ * Creates an AsterFlow request adapter for Express runtime
+ * @param request - Native Express Request object
+ * @returns AsterRequest instance adapted for Express
+ * @throws Error if request is null or undefined
+ */
+export function createExpressRequest(request: ExpressRequest): AsterRequest<Runtime.Express> {
+  if (!request) {
+    throw new Error('[ExpressAdapter] Request object is required')
+  }
+
   const functions: RequestAbstract = {
-    getBody(): unknown {
-      return request.body
+    async getBody(): Promise<unknown> {
+      try {
+        // Express already parses body via middleware
+        return request.body ?? {}
+      } catch (error) {
+        throw new Error(`[ExpressAdapter] Failed to read request body: ${(error as Error).message}`)
+      }
     },
+
     getHeaders(): Record<string, string> {
       const headers: Record<string, string> = {}
 
@@ -18,16 +34,19 @@ export function createExpressRequest(request: ERequest) {
           headers[key.toLowerCase()] = value
         }
       }
-  
+
       return headers
     },
+
     getPathname(): string {
-      return request.url ?? '/'
+      const pathname = request.originalUrl || request.url || '/'
+      return pathname
     },
+
     getMethod(): string {
-      return request.method
+      return (request.method || 'GET').toUpperCase()
     }
   }
 
-  return new Request<Runtime.Express>(request, functions)
+  return new AsterRequest<Runtime.Express>(request, functions)
 }
