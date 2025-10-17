@@ -106,7 +106,11 @@ export class AsterFlowInstance<
       return response.badRequest({
         statusCode: 400,
         message: err instanceof ErrorLog ? 'AST_ERROR' : 'ERROR',
-        error: err instanceof ErrorLog ? err.message : err
+        error: err instanceof ErrorLog
+          ? err.message
+          : err instanceof Error
+          ? err.message
+          : err
       })
     }
   }
