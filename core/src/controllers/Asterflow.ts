@@ -359,7 +359,7 @@ export class AsterFlowInstance<
   
     if (!handler) return null
     if (schema) {
-      const schemaResult = schema.safeParse(request.getBody())
+      const schemaResult = schema.safeParse(await request.getBody())
       if (!schemaResult.success) {
         return response.validationError({
           statusCode: 422,
