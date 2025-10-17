@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/request",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",

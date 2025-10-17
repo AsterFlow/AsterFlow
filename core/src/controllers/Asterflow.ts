@@ -102,6 +102,7 @@ export class AsterFlowInstance<
 
       return response
     } catch (err) {
+      console.log(err)
       return response.badRequest({
         statusCode: 400,
         message: err instanceof ErrorLog ? 'AST_ERROR' : 'ERROR',
@@ -376,7 +377,7 @@ export class AsterFlowInstance<
       request,
       response,
       url: request.url,
-      schema: request.getBody(),
+      schema: await request.getBody(),
       middleware: {},
       plugins: pluginContext
     }
