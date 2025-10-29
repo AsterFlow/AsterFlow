@@ -1,8 +1,9 @@
  
 import type { Runtime } from '@asterflow/adapter'
-import type { AnyAsterflow, ExtendedAsterflow } from 'asterflow'
 import type { Request } from '@asterflow/request'
 import type { AsterResponse, Prettify } from '@asterflow/response'
+import type { AnyRouter } from '@asterflow/router'
+import type { AnyAsterflow, ExtendedAsterflow, RouteEntry } from 'asterflow'
 import type { Plugin } from '../controllers/Plugin'
 import type { AnyRecord, UnionToIntersection } from './utils'
 
@@ -56,10 +57,34 @@ export type PluginHooks<
   beforeInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => any | Promise<any>)[]
   afterInitialize?: ((app: ExtendedAsterflow<Instance> & Extension, context: Context) => any | Promise<any>)[]
   onRequest?: ((
-    { context, request, response }: { request: Request<Runtime>, response: AsterResponse, context: Context }
+    {
+      instance,
+      router,
+      plugin,
+      request,
+      response
+    }: {
+      instance: ExtendedAsterflow<Instance>
+      router: RouteEntry<string, AnyRouter>,
+      request: Request<Runtime>,
+      response: AsterResponse,
+      plugin: AnyPluginInstance
+    }
   ) => any | Promise<any>)[]
   onResponse?: ((
-    { context, request, response }: { request: Request<Runtime>, response: AsterResponse, context: Context }
+    {
+      instance,
+      router,
+      plugin,
+      request,
+      response
+    }: {
+      instance: ExtendedAsterflow<Instance>
+      router: RouteEntry<string, AnyRouter>,
+      request: Request<Runtime>,
+      response: AsterResponse,
+      plugin: AnyPluginInstance
+    }
   ) => any | Promise<any>)[]
 }
 

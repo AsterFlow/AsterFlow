@@ -69,11 +69,7 @@ export class AsterFlowInstance<
    */
   private async handleRequest(request: Request<Drive['runtime']>, response: AsterResponse) {
     response = response ?? new AsterResponse()
-
-    // Execute onRequest hooks - if any plugin returns a response, return it immediately
-    const onRequestResult = await this.runHooks('onRequest', request, response)
-    if (onRequestResult) return onRequestResult
-
+    
     const notFound = () => response.notFound({
       statusCode: 404,
       code: 'NOT_FOUND',
@@ -87,6 +83,10 @@ export class AsterFlowInstance<
     if (!routeMatch?.node?.store) return notFound()
 
     const routeEntry = routeMatch.node.store as RouteEntry<string, AnyRouter>
+    // Execute onRequest hooks - if any plugin returns a response, return it immediately
+    const onRequestResult = await this.runHooks('onRequest', this, routeEntry, request, response)
+    if (onRequestResult) return onRequestResult
+
 
     // Parser /:id, [...slug] and [slug]
     if (
@@ -98,7 +98,7 @@ export class AsterFlowInstance<
     
     try {
       await this.runHandler(routeEntry, request, response)
-      await this.runHooks('onResponse', request, response)
+      await this.runHooks('onResponse', this , routeEntry, request, response)
 
       return response
     } catch (err) {
@@ -283,9 +283,9 @@ export class AsterFlowInstance<
    */
   async listen(...args: Parameters<Drive['listen']>) {
     await this.resolvePluginContexts()
-    await this.runHooks('beforeInitialize')
+    await this.runHooks('beforeInitialize', this)
     await this.driver.listen(...args as any)
-    await this.runHooks('afterInitialize')
+    await this.runHooks('afterInitialize', this)
   }
 
   /**
@@ -307,6 +307,8 @@ export class AsterFlowInstance<
    */
   private async runHooks(
     hookName: 'beforeInitialize' | 'afterInitialize' | 'onRequest' | 'onResponse',
+    instance: AnyAsterflow,
+    router?: RouteEntry<string, AnyRouter>,
     request?: Request<Drive['runtime']>,
     response?: AsterResponse
   ): Promise<AsterResponse | void> {
@@ -316,35 +318,34 @@ export class AsterFlowInstance<
       case 'beforeInitialize':
       case 'afterInitialize': {
         const handlers = plugin.hooks[hookName]
-        if (handlers) {
-          for (const handler of handlers) {
-            await handler(this, plugin.context)
-          }
+        if (!handlers) break
+      
+        for (const handler of handlers) {
+          await handler(this, plugin.context)
         }
       }
         break
       case 'onRequest': {
-        if (!request || !response) return
-
         const handlers = plugin.hooks.onRequest
-        if (handlers) {
-          for (const handler of handlers) {
-            const result = await handler({ request, response, context: plugin.context })
-            // If handler returns a response, stop execution and return it
-            if (result && typeof result === 'object' && result.constructor?.name === 'AsterResponse') {
-              return result as AsterResponse
-            }
+        if (!handlers) break
+        if (!request || !response || !router) return
+
+        for (const handler of handlers) {
+          const result = await handler({ instance, router, request, response, plugin })
+          // If handler returns a response, stop execution and return it
+          if (result && typeof result === 'object' && result.constructor?.name === 'AsterResponse') {
+            return result as AsterResponse
           }
         }
       }
         break
       case 'onResponse': {
-        if (!request || !response) return
+        if (!request || !response || !router) return
 
         const handlers = plugin.hooks.onResponse
         if (handlers) {
           for (const handler of handlers) {
-            await handler({ request, response, context: plugin.context })
+            await handler({ instance, router, request, response, plugin })
           }
         }
       }
@@ -369,7 +370,7 @@ export class AsterFlowInstance<
         return response.validationError({
           statusCode: 422,
           message: 'VALIDATION_ERROR',
-          error: schemaResult.error
+          error: JSON.parse(schemaResult.error)
         })
       }
       response.send(schemaResult.data)
