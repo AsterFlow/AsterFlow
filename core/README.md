@@ -56,7 +56,7 @@ aster.listen(server, { port: 3000 })
 import { Router } from '@asterflow/router'
 
 const router = new Router({
-  path: '/:id=number?query#fragment',
+  path: '/:id.number?query#fragment',
   methods: {
     get({ response, url }) {
       const params = url.getParams() // params.id is typed as number
@@ -105,7 +105,7 @@ const router = new Router({
 import { Method } from '@asterflow/router'
 
 const route = new Method({
-  path: '/users/:id=number',
+  path: '/users/:id.number',
   method: 'get',
   handler: ({ response, url }) => {
     const { id } = url.getParams() // id is typed as number

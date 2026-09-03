@@ -1,0 +1,46 @@
+{
+  "name": "@asterflow/cli",
+  "version": "0.1.0",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/mjs/index.js",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ashu11-A",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AsterFlow/AsterFlow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AsterFlow/AsterFlow/issues"
+  },
+  "homepage": "https://github.com/AsterFlow/AsterFlow",
+  "bin": {
+    "asterflow": "dist/cjs/index.cjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.1",
+    "chalk": "^4.1.2",
+    "yargs": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/yargs": "^17.0.33"
+  },
+  "peerDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

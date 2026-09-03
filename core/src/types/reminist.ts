@@ -4,25 +4,21 @@ import type { RouteEntry } from './routes'
 
 /**
  * Represents a generic Reminist instance, used for managing routes.
- * Includes a string array for paths, a record of route entries, and an array of HTTP method keys.
+ * Includes a record of route entries and an array of HTTP method keys.
  */
-export type AnyReminist = Reminist<
-  readonly string[],
-  Record<string, RouteEntry<string, AnyRouter>>,
-  MethodKeys[]
->
+export type AnyReminist = Reminist<any, any>
 
 /**
  * Infers the paths from a Reminist instance.
  */
-export type InferReministPath<T> = T extends Reminist<infer P, any, any>
-  ? P
+export type InferReministPath<T> = T extends Reminist<infer C, any>
+  ? Extract<keyof C, string>[]
   : never
 
 /**
  * Infers the context from a Reminist instance.
  */
-export type InferReministContext<T> = T extends Reminist<any, infer C, any>
+export type InferReministContext<T> = T extends Reminist<infer C, any>
   ? C
   : never
 

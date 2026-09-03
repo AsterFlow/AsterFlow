@@ -13,10 +13,10 @@ export type CombinePaths<
  * Infers the path from a `Router` or `Method` type.
  * This normalizes the path and combines it with the root.
  */
-export type InferPath<T> = 
+export type InferPath<T> =
   T extends Router<any, infer P, any, any, any, any>
     ? CombinePaths<'/', P>
-    : T extends Method<any, infer P, any, any, any, any, any, any, any>
+    : T extends Method<any, infer P, any, any, any, any, any, any, any, any>
       ? CombinePaths<'/', P>
       : never
 

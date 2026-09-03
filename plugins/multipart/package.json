@@ -1,0 +1,42 @@
+{
+  "name": "@asterflow/multipart",
+  "version": "1.0.0",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/mjs/index.js",
+  "types": "dist/types/index.d.ts",
+  "typings": "dist/types/index.d.ts",
+  "type": "module",
+  "license": "MIT",
+  "author": "Ashu11-A",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AsterFlow/AsterFlow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AsterFlow/AsterFlow/issues"
+  },
+  "homepage": "https://github.com/AsterFlow/AsterFlow",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/mjs/index.js",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@asterflow/plugin": "workspace:../../packages/plugin",
+    "@asterflow/request": "workspace:../../packages/request",
+    "@asterflow/response": "workspace:../../packages/response",
+    "@asterflow/router": "workspace:../../packages/router",
+    "@asterflow/url-parser": "^4.1.1",
+    "busboy": "^1.6.0"
+  },
+  "devDependencies": {
+    "@asterflow/adapter": "workspace:../../packages/adapter",
+    "@types/busboy": "^1.5.4",
+    "asterflow": "workspace:../../core"
+  }
+}

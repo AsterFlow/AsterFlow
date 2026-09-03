@@ -115,7 +115,7 @@ const router = new Router({
   // Supports dynamic parameters (:id), 
   // query strings (?page) and 
   // fragments (#section)
-  path: '/users/:id=number?page#section',
+  path: '/users/:id.number?page#section',
   methods: {
     get({ url, response }) {
       console.log(url.getParams())      // { id: number }

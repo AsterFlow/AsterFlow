@@ -27,11 +27,11 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.6",
     "@asterflow/router": "workspace:../router"
   },
   "peerDependencies": {
-    "fastify": "^5.4.0",
+    "fastify": "^5.12.1",
     "express": "^5.1.0",
     "typescript": "^5.8.3"
   },

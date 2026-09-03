@@ -7,7 +7,7 @@ export default new Adapter({
   runtime: Runtime.Bun,
   listen(params, callback) {
     try {
-      Bun.serve({ ...params, 
+      Bun.serve({ ...params as Record<string, unknown>, 
         fetch: async (request) => {
           if (!this.onRequest) return new AsterResponse().notFound({
             statusCode: 500,

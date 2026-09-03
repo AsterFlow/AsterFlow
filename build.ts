@@ -1,11 +1,13 @@
 import { exec } from 'child_process'
 import * as esbuild from 'esbuild'
 import { existsSync } from 'fs'
-import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
+import { cp, mkdir, readFile, rename, rm, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import JSON5 from 'json5'
 import { dirname, join, relative } from 'path'
 import { promisify } from 'util'
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 const execAsync = promisify(exec)
 
@@ -25,8 +27,8 @@ interface WorkspaceDependency {
 class PackageRegistry {
   private packages = new Map<string, PackageInfo>()
   
-  async discoverPackages(): Promise<void> {
-    const packagePaths = await glob(['packages/*/', 'core'])
+  async discoverPackages(filter?: string): Promise<void> {
+    const packagePaths = await glob(['packages/*/', 'plugins/*/', 'core'])
     
     for (const packagePath of packagePaths) {
       const pkgJsonPath = join(packagePath, 'package.json')
@@ -47,14 +49,35 @@ class PackageRegistry {
       
       console.log(`📦 Discovered package: ${pkg.name}@${pkg.version} at ${packagePath} -> ${publishPath}`)
     }
+
+    if (filter) {
+      // filter may be npm name (@asterflow/fs) or folder name (fs)
+      const found = Array.from(this.packages.values()).find(
+        (p) => p.name === filter || p.publishPath === `publish/${filter}` || p.path.endsWith(`/${filter}`) || p.path.endsWith(`/${filter}/`)
+      )
+      if (!found) {
+        // Check if filter matches folder under packages/* or plugins/*
+        const candidatePaths = [`packages/${filter}/`, `plugins/${filter}/`]
+        const matched = candidatePaths.find(cp => existsSync(join(cp, 'package.json')))
+        if (matched) {
+          console.warn(`⚠️  Filter "${filter}" matched folder ${matched} but not in registry (maybe package.json name differs). Using folder filter.`)
+        } else {
+          console.error(`\x1b[31mError:\x1b[0m Package '${filter}' not found among discovered packages.`)
+          console.error(`Available: ${Array.from(this.packages.values()).map(p => `${p.name} (${p.path})`).join(', ')}`)
+          process.exit(1)
+        }
+      }
+    }
   }
   
   getPackageByName(name: string): PackageInfo | undefined {
     return this.packages.get(name)
   }
   
-  getAllPackages(): PackageInfo[] {
-    return Array.from(this.packages.values())
+  getAllPackages(filter?: string): PackageInfo[] {
+    const all = Array.from(this.packages.values())
+    if (!filter) return all
+    return all.filter((p) => p.name === filter || p.publishPath === `publish/${filter}` || p.path.endsWith(`/${filter}`) || p.path.endsWith(`/${filter}/`))
   }
   
   resolveWorkspaceDependencies(packagePath: string): Promise<WorkspaceDependency[]> {
@@ -128,8 +151,8 @@ class TypeScriptBuilder {
       }
     }
 
-    const packages = await glob('core/dist/types/packages/*')
-    for (const packagePath of packages) {
+    const packageGroups = await glob(['core/dist/types/packages/*', 'core/dist/types/plugins/*'])
+    for (const packagePath of packageGroups) {
       const packageName = packagePath.split('/').pop()
       if (!packageName) continue
 
@@ -142,6 +165,22 @@ class TypeScriptBuilder {
         await mkdir(dirname(targetPath), { recursive: true })
         await cp(file, targetPath)
       }
+
+      // Also copy source .d.ts files that are not emitted (e.g., augmentation files)
+      const possibleSrcs = [`packages/${packageName}`, `plugins/${packageName}`]
+      for (const packageSrc of possibleSrcs) {
+        if (!existsSync(packageSrc)) continue
+        const dtsSources = await glob(`${packageSrc}/src/**/*.d.ts`)
+        for (const dtsFile of dtsSources) {
+          const relativePath = dtsFile.replace(`${packageSrc}/src/`, '')
+          const targetPath = join(targetBase, relativePath)
+          // Skip if already copied via emitted types (avoid overwrite with same content)
+          if (existsSync(targetPath)) continue
+          await mkdir(dirname(targetPath), { recursive: true })
+          await cp(dtsFile, targetPath)
+          console.log(`${this.TYPES} Copied augmentation d.ts ${dtsFile} -> ${targetPath}`)
+        }
+      }
     }
 
     console.log(`${this.TYPES} Type definitions copied to publish directory`)
@@ -150,7 +189,9 @@ class TypeScriptBuilder {
   async mergeTsConfig(packageInfo: PackageInfo): Promise<void> {
     const CLI = '\x1b[34mCLI\x1b[0m'
     const { path: packagePath, publishPath } = packageInfo
-    const baseConfigPath = join(process.cwd(), 'packages/tsconfig.base.json')
+    const baseConfigPath = packagePath.startsWith('plugins/') 
+      ? join(process.cwd(), 'plugins/tsconfig.base.json')
+      : join(process.cwd(), 'packages/tsconfig.base.json')
     const packageConfigPath = join(packagePath, 'tsconfig.json')
     
     console.log(`${CLI} Reading base tsconfig from ${baseConfigPath}`)
@@ -286,7 +327,7 @@ class ESBuildBuilder {
       // Se `singleLineComment` foi capturado, significa que a regex encontrou um `//`
       if (singleLineComment) {
         // Verificamos se é um comentário de caminho que queremos preservar
-        if (singleLineComment.startsWith('// core/') || singleLineComment.startsWith('// packages/')) {
+        if (singleLineComment.startsWith('// core/') || singleLineComment.startsWith('// packages/') || singleLineComment.startsWith('// plugins/')) {
           return singleLineComment // Mantém o comentário
         }
       }
@@ -354,6 +395,51 @@ class DependencyManager {
       console.log(`${this.CLI} No workspace dependencies to update in ${name}`)
     }
   }
+
+  async validateNoWorkspaceRemains(packageInfo: PackageInfo): Promise<boolean> {
+    const manifestPath = join(packageInfo.publishPath, 'package.json')
+    const content = await readFile(manifestPath, 'utf-8')
+    if (content.includes('workspace:')) {
+      console.error(`\x1b[31mError:\x1b[0m workspace: protocol still present in ${manifestPath}`)
+      return false
+    }
+    return true
+  }
+}
+
+class LocalPacker {
+  private readonly CLI = '\x1b[34mCLI\x1b[0m'
+
+  async packPackage(packageInfo: PackageInfo): Promise<void> {
+    console.log(`  🥡 Packing ${packageInfo.name} for local installation...`)
+    const publishPath = join(process.cwd(), packageInfo.publishPath)
+
+    try {
+      const { stdout } = await execAsync('bun pm pack', { cwd: publishPath })
+
+      const tgzFileName = stdout
+        .split('\n')
+        .find(line => line.endsWith('.tgz'))
+        ?.trim()
+
+      if (!tgzFileName) {
+        throw new Error(`Could not determine packed file name from \`bun pm pack\` output.\nReceived: ${stdout}`)
+      }
+
+      const sourceTgzPath = join(publishPath, tgzFileName)
+      const localPackagesDir = join(process.cwd(), 'local-packages')
+      await mkdir(localPackagesDir, { recursive: true })
+      const targetTgzPath = join(localPackagesDir, tgzFileName)
+
+      await rename(sourceTgzPath, targetTgzPath)
+
+      console.log(`  ✅ Packed successfully!`)
+      console.log(`  📂 File created: \x1b[32m${targetTgzPath}\x1b[0m`)
+      console.log(`  💡 To install, run: \x1b[36mbun add ${targetTgzPath}\x1b[0m`)
+    } catch (error) {
+      console.error(`  \x1b[31mError:\x1b[0m Failed to pack ${packageInfo.name}.`, error)
+    }
+  }
 }
 
 class Builder {
@@ -362,21 +448,39 @@ class Builder {
   private tsBuilder = new TypeScriptBuilder()
   private esBuildBuilder = new ESBuildBuilder()
   private dependencyManager = new DependencyManager(this.registry)
+  private localPacker = new LocalPacker()
 
-  private async cleanPublishDirectory(): Promise<void> {
+  private async cleanPublishDirectory(filter?: string): Promise<void> {
+    if (filter) {
+      const filtered = this.registry.getAllPackages(filter)
+      for (const pkg of filtered) {
+        if (existsSync(pkg.publishPath)) {
+          console.log(`${this.CLI} Cleaning publish directory for ${pkg.name}: ${pkg.publishPath}`)
+          await rm(pkg.publishPath, { recursive: true })
+        }
+      }
+      // Ensure we still clean core/dist/types for filtered builds to avoid stale
+      return
+    }
     console.log(`${this.CLI} Cleaning up old publish directory...`)
     if (existsSync('publish')) await rm('publish', { recursive: true })
     console.log(`${this.CLI} Cleaned publish directory`)
   }
 
-  public async build(): Promise<void> {
-    console.log(`${this.CLI} 🚀 Starting modular build process...`)
+  public async build(options: { packageFilter?: string; isLocal?: boolean } = {}): Promise<void> {
+    const { packageFilter, isLocal } = options
+    const action = isLocal ? 'local packaging' : 'build'
+    console.log(`${this.CLI} 🚀 Starting modular ${action} process...${packageFilter ? ` (filter: ${packageFilter})` : ''}`)
     
-    await this.cleanPublishDirectory()
-    await this.registry.discoverPackages()
+    await this.registry.discoverPackages(packageFilter)
+    await this.cleanPublishDirectory(packageFilter)
     await this.tsBuilder.generateTypes()
     
-    const packages = this.registry.getAllPackages()
+    const packages = this.registry.getAllPackages(packageFilter)
+    if (packages.length === 0) {
+      console.error(`\x1b[31mError:\x1b[0m No packages matched filter "${packageFilter}"`)
+      process.exit(1)
+    }
     
     for (const packageInfo of packages) {
       console.log(`\n${this.CLI} ═══ Building ${packageInfo.name} ═══`)
@@ -396,6 +500,24 @@ class Builder {
     for (const packageInfo of packages) {
       await this.dependencyManager.replaceWorkspaceDependencies(packageInfo)
     }
+
+    // Validation: ensure no workspace: remains in publish
+    let hasWorkspaceLeak = false
+    for (const packageInfo of packages) {
+      const ok = await this.dependencyManager.validateNoWorkspaceRemains(packageInfo)
+      if (!ok) hasWorkspaceLeak = true
+    }
+    if (hasWorkspaceLeak) {
+      console.error(`\x1b[31mBuild failed: workspace: protocol leaked into publish manifests\x1b[0m`)
+      process.exit(1)
+    }
+
+    if (isLocal) {
+      console.log(`\n${this.CLI} ═══ Packing for local install ═══`)
+      for (const packageInfo of packages) {
+        await this.localPacker.packPackage(packageInfo)
+      }
+    }
     
     console.log(`\n${this.CLI} ✅ All packages built and ready for publish!`)
     console.log(`${this.CLI} Built packages:`)
@@ -405,6 +527,31 @@ class Builder {
   }
 }
 
-// Execute build
-const builder = new Builder()
-builder.build().catch(console.error)
+// CLI
+async function main() {
+  const argv = await yargs(hideBin(process.argv))
+    .options({
+      package: {
+        alias: 'p',
+        type: 'string',
+        describe: 'Package folder or npm name to build (e.g., fs, @asterflow/fs, adapter)',
+        demandOption: false
+      },
+      local: {
+        type: 'boolean',
+        describe: 'Pack built packages into local-packages/*.tgz via bun pm pack',
+        default: false
+      }
+    })
+    .help()
+    .alias('help', 'h')
+    .parse()
+
+  const builder = new Builder()
+  await builder.build({ packageFilter: argv.package as string | undefined, isLocal: argv.local as boolean })
+}
+
+main().catch((error) => {
+  console.error('Build failed:', error)
+  process.exit(1)
+})

@@ -13,6 +13,18 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "asterflow": ["core/src/index.ts"],
+      "@asterflow/adapter": ["packages/adapter/src/index.ts"],
+      "@asterflow/request": ["packages/request/src/index.ts"],
+      "@asterflow/response": ["packages/response/src/index.ts"],
+      "@asterflow/router": ["packages/router/src/index.ts"],
+      "@asterflow/plugin": ["packages/plugin/src/index.ts"],
+      "@asterflow/fs": ["plugins/fs/src/index.ts"],
+      "@asterflow/multipart": ["plugins/multipart/src/index.ts"],
+      "@asterflow/*": ["packages/*/src/index.ts", "plugins/*/src/index.ts"]
+    },
 
     // Best practices
     "strict": true,

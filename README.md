@@ -88,7 +88,7 @@ aster.listen(server, { port: 3000 })
 import { Method } from '@asterflow/router'
 
 export default new Method({
-  path: '/users/:id=number', // Support for typed parameters
+  path: '/users/:id.number', // Support for typed parameters
   method: 'get',
   handler: ({ response, url }) => {
     const { id } = url.getParams() // id is automatically typed as number

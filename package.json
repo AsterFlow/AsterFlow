@@ -2,25 +2,33 @@
   "name": "asterflow",
   "type": "module",
   "private": true,
-  "workspaces": ["core", "packages/*"],
+  "workspaces": ["core", "packages/*", "plugins/*", "example", "benchmark"],
   "scripts": {
     "lint": "eslint -c eslint.config.js --fix",
-    "dev": "bun run --inspect-brk=ws://localhost:6499 core/src/exemple.ts",
+    "dev": "bun run --inspect-brk=ws://localhost:6499 example/index.ts",
     "build": "bun run build.ts",
-    "publish": "bun run publish.ts"
+    "build:check": "bun run build.ts --help",
+    "publish": "bun run publish.ts",
+    "publish:local": "bun run build.ts --local",
+    "typecheck": "tsc --noEmit --project tsconfig.json && tsc --noEmit --project core/tsconfig.build.json",
+    "typecheck:all": "bun run --filter '*' --no-save typecheck 2>/dev/null || tsc --noEmit",
+    "check:workspaces": "bun run scripts/check-workspaces.ts",
+    "update": "bun run update.ts"
   },
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
+    "@eslint/js": "^9.39.5",
     "@types/bun": "latest",
-    "@types/semver": "^7.7.0",
-    "esbuild": "^0.25.11",
-    "eslint": "^9.34.0",
-    "glob": "^11.0.3",
-    "globals": "^16.3.0",
+    "@types/semver": "^7.8.0",
+    "@types/yargs": "^17.0.33",
+    "chalk": "^4.1.2",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.39.5",
+    "glob": "^11.1.0",
+    "globals": "^16.5.0",
     "json5": "^2.2.3",
-    "semver": "^7.7.2",
-    "tsup": "^8.5.0",
-    "typescript-eslint": "^8.40.0"
+    "semver": "^7.8.5",
+    "typescript-eslint": "^8.69.0",
+    "yargs": "^18.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"

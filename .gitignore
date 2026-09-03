@@ -5,6 +5,7 @@ node_modules
 out
 dist
 publish
+local-packages
 *.tgz
 
 # code coverage
@@ -35,4 +36,5 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 .early.coverage
-/exemple
+/example
+/benchmark

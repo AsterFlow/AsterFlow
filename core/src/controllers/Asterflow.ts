@@ -26,12 +26,11 @@ import {
   type RouterOptions,
   type SchemaDynamic
 } from '@asterflow/router'
-import { Analyze, ErrorLog, InternalExpression, type NormalizePath } from '@asterflow/url-parser'
+import { Analyze, ErrorLog, InternalExpression } from '@asterflow/url-parser'
 import { Reminist } from 'reminist'
 import type { AsterFlowOptions } from '../types/asterflow'
-import type { ExtractPaths, InferPath } from '../types/paths'
 import type { MergedPluginContexts } from '../types/plugin'
-import type { AnyReminist, InferReministContext, InferReministPath } from '../types/reminist'
+import type { AnyReminist, InferReministContext } from '../types/reminist'
 import type {
   BuildRouteContext,
   BuildRoutesContext,
@@ -90,10 +89,13 @@ export class AsterFlowInstance<
 
     // Parser /:id, [...slug] and [slug]
     if (
-      routeEntry.url.ast.expressions.has(InternalExpression.Variable) 
-      || routeEntry.url.ast.expressions.has(InternalExpression.Slug)
+      routeEntry.url.ast.expressions.has(InternalExpression.Variable)
+      || routeEntry.url.ast.expressions.has(InternalExpression.Dynamic)
+      || routeEntry.url.ast.expressions.has(InternalExpression.DynamicCatchAll)
+      || routeEntry.url.ast.expressions.has(InternalExpression.DynamicOptionalCatchAll)
+      || routeEntry.url.ast.expressions.has(InternalExpression.Wildcard)
     ) {
-      request.url = request.url.withParser(routeEntry.url as any)
+      request.url = request.url.setParser(routeEntry.url as any)
     }
     
     try {
@@ -131,9 +133,6 @@ export class AsterFlowInstance<
     return this as unknown as AsterFlow<
       Drive,
       Reminist<
-        InferReministPath<Routers> extends string[]
-          ? [...InferReministPath<Routers>, ...ExtractPaths<BasePath, Routes>]
-          : ExtractPaths<BasePath, Routes>,
         InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
           ? InferReministContext<Routers> & BuildRoutesContext<BasePath, Routes>
           : BuildRoutesContext<BasePath, Routes>,
@@ -154,9 +153,6 @@ export class AsterFlowInstance<
     return this as unknown as AsterFlow<
       Drive,
       Reminist<
-        InferReministPath<Routers> extends string[]
-          ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-          : [NormalizePath<InferPath<Route>>],
         InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
           ? InferReministContext<Routers> & BuildRouteContext<Route>
           : BuildRouteContext<Route>,
@@ -216,9 +212,6 @@ export class AsterFlowInstance<
     return this as unknown as AsterFlow<
       Drive,
       Reminist<
-        InferReministPath<Routers> extends string[]
-          ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-          : [NormalizePath<InferPath<Route>>],
         InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
           ? InferReministContext<Routers> & BuildRouteContext<Route>
           : BuildRouteContext<Route>,
@@ -241,16 +234,13 @@ export class AsterFlowInstance<
     const Context extends MiddlewareOutput<Middlewares>,
     const Instance extends AsterFlowInstance<Drive, Routers, Plugins, Middlewares, Extension>,
     const Handler extends MethodHandler<Path, Drive['runtime'], Responder, Schema, Middlewares, Context, Instance>,
-    const Route extends Method<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>,
+    const Route extends Method<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, {}, Handler>,
   >(options: MethodOptions<Responder, Path, Drive['runtime'], Methoder, Schema, Middlewares, Context, Instance, Handler>) {
     this.controller(new Method(options))
 
     return this as unknown as AsterFlow<
       Drive,
       Reminist<
-        InferReministPath<Routers> extends string[]
-          ? [...InferReministPath<Routers>, NormalizePath<InferPath<Route>>]
-          : [NormalizePath<InferPath<Route>>],
         InferReministContext<Routers> extends Record<string, RouteEntry<string, AnyRouter>>
           ? InferReministContext<Routers> & BuildRouteContext<Route>
           : BuildRouteContext<Route>,

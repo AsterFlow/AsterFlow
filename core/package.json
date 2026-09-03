@@ -38,7 +38,7 @@
     "@asterflow/plugin": "workspace:../packages/plugin",
     "@asterflow/response": "workspace:../packages/response",
     "@asterflow/router": "workspace:../packages/router",
-    "@asterflow/url-parser": "^2.0.3",
-    "reminist": "^1.0.5"
+    "@asterflow/url-parser": "^4.1.1",
+    "reminist": "^1.0.8"
   }
 }
