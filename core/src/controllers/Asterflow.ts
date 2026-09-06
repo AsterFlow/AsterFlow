@@ -18,9 +18,9 @@ import {
   type AnyRouter,
   type AnySchema,
   type MethodCallProps,
+  type MethodConstructorOptions,
   type MethodHandler,
   type MethodKeys,
-  type MethodOptions,
   type Middleware,
   type MiddlewareOutput,
   type RouteHandler,
@@ -259,8 +259,11 @@ export class AsterFlowInstance<
       = MethodHandler<Path, Drive['runtime'], Responder, Schema, RouteMiddlewares, Context, Instance>,
     const Route extends Method<MethodCallProps<Responder, Path, Drive['runtime'], Methoder, Schema, RouteMiddlewares, Context, Instance, {}, Handler>>
       = Method<MethodCallProps<Responder, Path, Drive['runtime'], Methoder, Schema, RouteMiddlewares, Context, Instance, {}, Handler>>,
-  >(options: MethodOptions<MethodCallProps<Responder, Path, Drive['runtime'], Methoder, Schema, RouteMiddlewares, Context, Instance, {}, Handler>>) {
-    this.controller(new Method(options))
+  >(
+    methodKey: Methoder,
+    options: MethodConstructorOptions<MethodCallProps<Responder, Path, Drive['runtime'], Methoder, Schema, RouteMiddlewares, Context, Instance, {}, Handler>>
+  ) {
+    this.controller(new Method(methodKey, options))
 
     return this as unknown as AsterFlow<
       Drive,

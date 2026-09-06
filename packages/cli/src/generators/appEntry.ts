@@ -25,9 +25,8 @@ export function generateEntry({ adapter, plugins, stub }: AppEntryOptions): stri
 
   const chain = [
     ...plugins.map((plugin) => plugin.useSnippet.replace(/^\./, '')),
-    ...(!usesFs && stub ? [`method({
+    ...(!usesFs && stub ? [`method('get', {
     path: '/',
-    method: 'get',
     handler({ response }) {
       return response.success({ message: 'Hello from AsterFlow!' })
     }

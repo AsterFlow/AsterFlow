@@ -1,6 +1,6 @@
 import { Method } from '@asterflow/router'
 
-export default Method.create({ method: 'post' })
+export default Method.create(Method.POST)
   .multipart({
     avatar: { mimeTypes: ['image/png', 'image/jpeg'], maxSize: 5 * 1024 * 1024, required: true }
   })

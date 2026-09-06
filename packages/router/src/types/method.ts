@@ -114,10 +114,19 @@ export type MethodOptions<Props extends MethodProps> = {
 }
 
 /**
- * `Method.create(...)`'s options: everything `MethodOptions` has except
- * `handler`, supplied later via the terminal `.handler()` call instead.
+ * `new Method(method, options)`'s second argument - everything
+ * `MethodOptions` has except `method` itself, which is passed positionally
+ * instead of repeated inside the options object.
  */
-export type MethodBuilderOptions<Props extends MethodProps> = Omit<MethodOptions<Props>, 'handler'>
+export type MethodConstructorOptions<Props extends MethodProps> = Omit<MethodOptions<Props>, 'method'>
+
+/**
+ * `Method.create(method, options?)`'s second argument: everything
+ * `MethodConstructorOptions` has except `handler`, supplied later via the
+ * terminal `.handler()` call instead. Every remaining field is optional, so
+ * this argument can be omitted entirely, e.g. `Method.create(Method.POST)`.
+ */
+export type MethodBuilderOptions<Props extends MethodProps> = Omit<MethodConstructorOptions<Props>, 'handler'>
 
 /**
  * `RequestExt`'s keys replace (not merely add to) the base request's -

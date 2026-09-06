@@ -1,7 +1,7 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from 'asterflow'
 import type { Responders } from '@asterflow/response'
-import type { DefaultMethodProps, MethodBuilderOptions, MethodCallProps, MethodHandler, MethodKeys, MethodOptions, MethodProps } from '../types/method'
+import type { DefaultMethodProps, MethodBuilderOptions, MethodCallProps, MethodConstructorOptions, MethodHandler, MethodKeys, MethodProps } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
 import type { MergeProps } from '../types/utils'
@@ -21,6 +21,16 @@ export type MethodHandlerSlot<Props extends MethodProps> = Props['handler'] exte
 export class Method<
   const Props extends MethodProps = DefaultMethodProps
 >{
+  /** Convenience constants for `new Method(Method.POST, {...})` / `Method.create(Method.POST)` - a plain `'post'` string works just as well. */
+  static readonly ALL: 'all' = 'all'
+  static readonly GET: 'get' = 'get'
+  static readonly POST: 'post' = 'post'
+  static readonly PUT: 'put' = 'put'
+  static readonly DELETE: 'delete' = 'delete'
+  static readonly OPTIONS: 'options' = 'options'
+  static readonly HEAD: 'head' = 'head'
+  static readonly PATCH: 'patch' = 'patch'
+
   path: Props['path']
   param?: Props['path']
   method: Props['methodKey']
@@ -41,9 +51,9 @@ export class Method<
   /** Plugin registrations from `extend` (e.g. multipart's `.multipart(schema)`), read back via `route.extensions.multipart`. */
   readonly extensions: Record<string, unknown> = {}
 
-  constructor (options: MethodOptions<Props>) {
+  constructor (method: Props['methodKey'], options: MethodConstructorOptions<Props>) {
     this.path = (options.path ?? options.param) as Props['path']
-    this.method = options.method
+    this.method = method
     this.schema = options.schema
     this.use = options.use
 
@@ -60,8 +70,12 @@ export class Method<
   /**
    * Defers `handler` to a terminal `.handler(fn)` call so plugins can chain
    * `request` extensions first, e.g.
-   * `Method.create({...}).multipart({...}).handler(...)`. Returns a real
-   * `Method`, not a separate class.
+   * `Method.create(Method.POST).multipart({...}).handler(...)`. Returns a
+   * real `Method`, not a separate class.
+   *
+   * `options` is optional - every one of its fields already is - so a route
+   * with nothing but a method and a deferred handler can skip it entirely:
+   * `Method.create(Method.GET).handler(...)`.
    *
    * Static, not folded into the constructor: a constructor shares one set
    * of type-parameter defaults, and the default that infers an eager inline
@@ -81,12 +95,13 @@ export class Method<
     const Schema extends AnySchema = AnySchema,
     const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
   >(
-    options: MethodBuilderOptions<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>>
+    method: MethodKey,
+    options: MethodBuilderOptions<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>> = {}
   ): Method<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>> {
-    return new Method({
+    return new Method(method, {
       ...options,
       handler: undefined
-    } as unknown as MethodOptions<any>)
+    } as unknown as MethodConstructorOptions<any>)
   }
 
   /**

@@ -28,7 +28,7 @@ export const PLUGIN_REGISTRY: Record<string, PluginDefinition> = {
     description: 'multipart/form-data parsing (file uploads), with per-route type-safe field criteria.',
     importName: 'multipartPlugin',
     useSnippet: '.use(multipartPlugin, { limits: { fileSize: 10 * 1024 * 1024 } })',
-    usageNote: 'Build upload routes with Method.create({...}).multipart({...}).handler(...) - see src/routes/upload.ts for a working example.'
+    usageNote: 'Build upload routes with Method.create(Method.POST).multipart({...}).handler(...) - see src/routes/upload.ts for a working example.'
   }
 }
 
