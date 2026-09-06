@@ -65,7 +65,7 @@ async function checkWorkspaces(): Promise<void> {
         console.error(`    - ${issue}`)
       }
     }
-    console.error(`\n\x1b[31mFix: use workspace:<relative path> e.g. "workspace:../router" or "workspace:../../core"\x1b[0m`)
+    console.error('\n\x1b[31mFix: use workspace:<relative path> e.g. "workspace:../router" or "workspace:../../core"\x1b[0m')
     process.exit(1)
   } else {
     console.log(`\n${CLI} ✅ All workspaces use correct workspace: protocol`)
@@ -82,7 +82,7 @@ async function checkWorkspaces(): Promise<void> {
     }
   }
   if (leaked) {
-    console.error(`\x1b[31mBuild output still contains workspace: - run build to fix\x1b[0m`)
+    console.error('\x1b[31mBuild output still contains workspace: - run build to fix\x1b[0m')
     process.exit(1)
   } else if (publishPkgs.length > 0) {
     console.log(`${CLI} ✅ No workspace: leaks in publish/ (${publishPkgs.length} packages)`)

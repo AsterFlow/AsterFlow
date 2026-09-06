@@ -69,7 +69,7 @@ class Publisher {
         const candidates = [
           `packages/${packageName}/`,
           `plugins/${packageName}/`,
-          `core/`, // allow "core" or "asterflow"
+          'core/' // allow "core" or "asterflow"
         ]
         // Also handle npm names like @asterflow/fs -> folder fs
         const folderName = packageName.includes('/') ? packageName.split('/').pop() : packageName
