@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/adapter",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Wires a runtime's native server (Bun.serve, Node's http, Express, Fastify) into AsterFlow, converting native requests to Request and sending back AsterResponse the same way regardless of runtime.",
   "keywords": [
     "asterflow",

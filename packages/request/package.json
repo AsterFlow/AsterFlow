@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/request",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Wraps the native request object of Bun, Node, Express, or Fastify into one typed AsterRequest, so the rest of AsterFlow reads requests the same way regardless of runtime.",
   "keywords": [
     "asterflow",
