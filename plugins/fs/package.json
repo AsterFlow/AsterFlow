@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/fs",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Generates a static route manifest from a file-based routes/ directory and registers it on an AsterFlow app as a plugin.",
   "keywords": [
     "asterflow",

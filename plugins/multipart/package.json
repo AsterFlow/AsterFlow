@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/multipart",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Parses multipart/form-data requests before your handler runs, with optional per-route field rules checked at runtime and enforced in the handler's types.",
   "keywords": [
     "asterflow",
