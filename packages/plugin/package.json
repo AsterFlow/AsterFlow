@@ -1,8 +1,13 @@
 {
   "name": "@asterflow/plugin",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "The plugin-authoring system used to build AsterFlow plugins - a typed builder for context, config and lifecycle hooks.",
-  "keywords": ["asterflow", "plugin", "plugin-system", "typescript"],
+  "keywords": [
+    "asterflow",
+    "plugin",
+    "plugin-system",
+    "typescript"
+  ],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
