@@ -7,6 +7,37 @@ import type { AnySchema } from '../types/schema'
 import type { MergeProps } from '../types/utils'
 import type { Middleware } from './Middleware'
 
+export interface MethodConstructor {
+  new <
+    Responder extends Responders,
+    const Path extends string = string,
+    const Drive extends Runtime = Runtime,
+    const MethodKey extends MethodKeys = MethodKeys,
+    const Schema extends AnySchema = AnySchema,
+    const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
+    const Context = MiddlewareOutput<Middlewares>,
+    const Instance extends AnyAsterflow = AnyAsterflow,
+    const Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, {}> = MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, {}>,
+  >(
+    method: MethodKey,
+    options: MethodConstructorOptions<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, {}, Handler>>
+  ): Method<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, {}, Handler>>
+
+  /** Convenience constants for `new Method(Method.POST, {...})` / `Method.create(Method.POST)` - a plain `'post'` string works just as well. */
+  readonly ALL: 'all'
+  readonly GET: 'get'
+  readonly POST: 'post'
+  readonly PUT: 'put'
+  readonly DELETE: 'delete'
+  readonly OPTIONS: 'options'
+  readonly HEAD: 'head'
+  readonly PATCH: 'patch'
+
+  create: typeof MethodClass.create
+
+  readonly prototype: MethodClass<any>
+}
+
 /**
  * `handler`'s field type: a concrete `MethodHandler<...>` once finished, or
  * - while `Handler` is `undefined` (pending) - the terminal chain call
@@ -18,7 +49,7 @@ export type MethodHandlerSlot<Props extends MethodProps> = Props['handler'] exte
     ) => Method<MergeProps<Props, { handler: H }>>
   : Props['handler']
 
-export class Method<
+export class MethodClass<
   const Props extends MethodProps = DefaultMethodProps
 >{
   /** Convenience constants for `new Method(Method.POST, {...})` / `Method.create(Method.POST)` - a plain `'post'` string works just as well. */
@@ -84,8 +115,8 @@ export class Method<
    * each its own.
    *
    * Plugins add their own chain method via `declare module '@asterflow/router'
-   * { interface Method<...> { theirMethod(...): Method<...> } }` plus a real
-   * `Method.prototype.theirMethod = ...` implementation calling `extend`.
+   * { interface MethodClass<...> { theirMethod(...): Method<...> } }` plus a real
+   * `MethodClass.prototype.theirMethod = ...` implementation calling `extend`.
    */
   static create<
     Responder extends Responders,
@@ -98,7 +129,7 @@ export class Method<
     method: MethodKey,
     options: MethodBuilderOptions<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>> = {}
   ): Method<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>> {
-    return new Method(method, {
+    return new MethodClass(method, {
       ...options,
       handler: undefined
     } as unknown as MethodConstructorOptions<any>)
@@ -118,3 +149,7 @@ export class Method<
     return this as unknown as Method<MergeProps<Props, { requestExt: Props['requestExt'] & E, handler: Props['handler'] extends undefined ? undefined : any }>>
   }
 }
+
+export type Method<Props extends MethodProps = DefaultMethodProps> = MethodClass<Props>
+
+export const Method: MethodConstructor = MethodClass as unknown as MethodConstructor

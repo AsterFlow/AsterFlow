@@ -1,6 +1,7 @@
 import type {
   DefaultMethodProps,
   DefaultRouteMethodBuilderProps,
+  Method,
   MergeProps,
   MethodProps,
   RouteMethodBuilderProps
@@ -35,7 +36,7 @@ declare module '@asterflow/request' {
 }
 
 /**
- * Adds `.multipart(schema)` onto `Method` and `RouteMethodBuilder` via
+ * Adds `.multipart(schema)` onto `MethodClass` and `RouteMethodBuilder` via
  * declaration merging - the parameter list must match each class's real one
  * exactly (count, constraints, defaults). No `const` modifier here: Bun's
  * transpiler can't parse `const` type parameters inside a merged interface,
@@ -43,7 +44,7 @@ declare module '@asterflow/request' {
  * `controllers/multipartExtension.ts`.
  */
 declare module '@asterflow/router' {
-  interface Method<
+  interface MethodClass<
     Props extends MethodProps = DefaultMethodProps
   > {
     multipart<Fields extends MultipartFields>(
