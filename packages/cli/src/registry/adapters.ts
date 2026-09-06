@@ -11,6 +11,8 @@ export interface AdapterDefinition {
   preamble: string | null
   /** Everything after `.listen` - arguments and callback - appended to the exported chain. */
   listenCall: string
+  /** Binary used to run the bundled `dist/index.mjs` in the `start` script - `bun` needs Bun's globals, everything else runs under plain Node. */
+  runCommand: 'bun' | 'node'
 }
 
 export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
@@ -21,6 +23,7 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     imports: [],
     driverExpression: 'adapters.bun',
     preamble: null,
+    runCommand: 'bun',
     listenCall: `({ port: 3333 }, (err) => {
     if (err) {
       console.error(err)
@@ -36,6 +39,7 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     imports: [],
     driverExpression: 'adapters.node',
     preamble: null,
+    runCommand: 'node',
     listenCall: `({ port: 3333 }, (err) => {
     if (err) {
       console.error(err)
@@ -51,6 +55,7 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     imports: ['import express from \'express\''],
     driverExpression: 'adapters.express',
     preamble: 'const server = express()',
+    runCommand: 'node',
     listenCall: `(server, 3333, () => {
     console.log('Server listening on http://localhost:3333')
   })`
@@ -62,6 +67,7 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     imports: ['import fastify from \'fastify\''],
     driverExpression: 'adapters.fastify',
     preamble: 'const server = fastify()',
+    runCommand: 'node',
     listenCall: `(server, { port: 3333 }, (err) => {
     if (err) {
       console.error(err)

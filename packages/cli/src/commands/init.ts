@@ -215,6 +215,7 @@ export async function runInit(options: InitOptions): Promise<void> {
 
   await writeFile(join(targetDir, 'package.json'), await generatePackage({ name, adapter, plugins }))
   await copyTemplate('tsconfig.json', join(targetDir, 'tsconfig.json'))
+  await copyTemplate('tsdown.config.ts', join(targetDir, 'tsdown.config.ts'))
   await writeFile(join(srcDir, 'index.ts'), generateEntry({ adapter, plugins, stub: templateIds.length > 0 }))
 
   await copyTemplate('gitignore', join(targetDir, '.gitignore'))

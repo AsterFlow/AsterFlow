@@ -10,7 +10,7 @@
 
 </div>
 
-> Generates a static route manifest from a file-based `routes/` directory and registers it on an AsterFlow app as a plugin.
+> File-based routing for AsterFlow - dynamic (scan a directory at startup) or static (a pre-generated manifest, bundler-safe) - registered as a plugin.
 
 ## 📦 Installation
 
@@ -18,7 +18,19 @@
 bun install @asterflow/fs
 ```
 
-Register the plugin with a generated route manifest:
+`fsRoutingPlugin` supports two mutually exclusive modes, picked automatically from which config key you pass:
+
+**Dynamic** - point it at a directory, no codegen step required. Simplest for dev/unbundled runs (`bun run src/index.ts`), but the `import()` path is fully computed at runtime, so a bundler can't trace it - don't use this for a bundled/production build.
+
+```ts
+import { AsterFlow } from 'asterflow'
+import { fsRoutingPlugin } from '@asterflow/fs'
+
+const app = new AsterFlow()
+  .use(fsRoutingPlugin, { path: './src/routes' })
+```
+
+**Static** - a pre-generated manifest of literal imports, safe for bundling. Generate it once (via `asterflow generate`, `--watch`, or `generateRouteManifest` in a build script) and pass the result in:
 
 ```ts
 import { AsterFlow } from 'asterflow'
@@ -29,16 +41,19 @@ const app = new AsterFlow()
   .use(fsRoutingPlugin, { routes })
 ```
 
+Passing both `routes` and `path` is ambiguous - the plugin logs a warning and uses `path`.
+
 ### ✨ Features
 
-- **Static manifest, not runtime scanning**: `generateRouteManifest` walks a routes directory once and writes a file with one literal `import` per route plus a default-exported array - a bundler can follow these imports, unlike the old `await import(dynamicPath)` approach.
-- **File-to-URL conventions**: `index.ts` becomes `/`, `users/index.ts` becomes `/users`, and a `$`-prefixed segment like `$id.ts` becomes a `:id` param.
-- **Auto path assignment**: in the generated manifest, any route whose `default export` has no explicit `path` gets one assigned from its file location.
-- **Safe registration**: `fsRoutingPlugin` registers every entry in `routes` with `instance.controller(route)` on `beforeInitialize`, and skips (with a warning) any entry that isn't a `Method`/`Router` instance instead of throwing.
+- **Two loading modes, one plugin**: `path` scans and `import()`s the directory at `beforeInitialize` (via `loadRoutesFromDir`) - no manifest file needed. `routes` takes a pre-generated array instead, for when the app gets bundled.
+- **Static manifest generation**: `generateRouteManifest` walks a routes directory once and writes a file with one literal `import` per route plus a default-exported array, so a bundler can follow it - unlike a fully-dynamic `import(path)`, which bundlers can't resolve at all.
+- **File-to-URL conventions** (both modes): `index.ts` becomes `/`, `users/index.ts` becomes `/users`, and a `$`-prefixed segment like `$id.ts` becomes a `:id` param.
+- **Auto path assignment**: any route whose `default export` has no explicit `path` gets one assigned from its file location.
+- **Safe registration**: `fsRoutingPlugin` registers every resolved route with `instance.controller(route)` on `beforeInitialize`, and skips (with a warning) any entry that isn't a `Method`/`Router` instance instead of throwing.
 
 ## ❓ How to Use
 
-Generate the manifest ahead of time, usually via the `asterflow generate` CLI command, or by calling the generator directly from a build script:
+For a static manifest, generate it ahead of time, usually via the `asterflow generate` CLI command, or by calling the generator directly from a build script:
 
 ```ts
 import { generateRouteManifest } from '@asterflow/fs'
@@ -49,7 +64,7 @@ await generateRouteManifest({
 })
 ```
 
-Route files just export a `Method` or `Router` - the `path` is filled in by the generator from the file's location, so `src/routes/users/$id.ts` becomes `/users/:id`:
+Route files just export a `Method` or `Router` - the `path` is filled in from the file's location (whichever mode you use), so `src/routes/users/$id.ts` becomes `/users/:id`:
 
 ```ts
 // src/routes/users/$id.ts

@@ -53,3 +53,30 @@ export async function resolveAsterflowVersion(packageName: string): Promise<stri
   const resolvedVersion = latestPatch >= 0 ? `${CLI_MAJOR}.${CLI_MINOR}.${latestPatch}` : pkg.version
   return `^${resolvedVersion}`
 }
+
+/**
+ * Resolves the `^latest` install range for a regular (non-AsterFlow-ecosystem)
+ * npm package, e.g. `tsdown`. Unlike `resolveAsterflowVersion`, this isn't
+ * pinned to the CLI's own major.minor - it just reads the registry's `latest`
+ * dist-tag. Falls back to `fallbackVersion` when the registry can't be reached.
+ */
+export async function resolveLatestVersion(packageName: string, fallbackVersion: string): Promise<string> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(`${REGISTRY_URL}/${encodeURIComponent(packageName)}`, {
+      signal: controller.signal,
+      headers: { Accept: 'application/vnd.npm.install-v1+json' }
+    })
+    if (!response.ok) return `^${fallbackVersion}`
+
+    const data = await response.json() as { 'dist-tags'?: { latest?: string } }
+    const latest = data['dist-tags']?.latest
+    return latest ? `^${latest}` : `^${fallbackVersion}`
+  } catch {
+    return `^${fallbackVersion}`
+  } finally {
+    clearTimeout(timer)
+  }
+}

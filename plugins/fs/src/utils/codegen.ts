@@ -1,9 +1,8 @@
 import { mkdir, writeFile } from 'fs/promises'
 import { dirname, extname, relative, sep } from 'path'
+import { ROUTE_FILE_EXTENSIONS } from './constants'
 import { transformPathToUrl } from './format'
 import { getFilesRecursively } from './glob'
-
-const ROUTE_FILE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx'])
 
 export interface GenerateRouteManifestOptions {
   /** Directory scanned for route files (e.g. `src/routes`). */
@@ -15,10 +14,12 @@ export interface GenerateRouteManifestOptions {
 /**
  * Scans `routesDir` once and writes a manifest file at `outFile` containing a
  * static `import` per route file plus a default-exported `AnyRouter[]`. Meant
- * to run at build/dev time (the `asterflow generate` CLI command), not at
- * request time - the resulting imports are literal specifiers a bundler can
- * follow, unlike `fsRoutingPlugin`'s old `await import(file)` with a
- * fully-dynamic path, which bundlers can't statically resolve at all.
+ * to run at build time (the `asterflow generate` CLI command, or a bundler
+ * plugin) - the resulting imports are literal specifiers a bundler can
+ * follow, unlike `loadRoutesFromDir`'s fully-dynamic `import(file)`, which
+ * bundlers can't statically resolve at all. Use this for bundled/production
+ * builds; `loadRoutesFromDir` (passed to `fsRoutingPlugin` as `routesDir`)
+ * covers unbundled dev runs where no codegen step is wanted.
  */
 export async function generateRouteManifest({ routesDir, outFile }: GenerateRouteManifestOptions): Promise<void> {
   const allFiles = await getFilesRecursively(routesDir)
