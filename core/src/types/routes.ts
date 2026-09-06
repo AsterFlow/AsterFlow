@@ -1,4 +1,4 @@
-import type { AnyRouter, MethodKeys } from '@asterflow/router'
+import type { AnyRouter, MethodKeys, Prettify } from '@asterflow/router'
 import type { CombinePaths, InferPath } from './paths'
 import type { UnionToIntersection } from './utils'
 import type { Analyze, NormalizePath } from '@asterflow/url-parser'
@@ -32,13 +32,15 @@ export type BuildRoutesContext<
 
 /**
  * Defines the specific typing preserved for each route entry in Reminist.
+ * Wrapped in `Prettify` so it shows as a labeled `{ path: ..., route: ..., ... }`
+ * object on hover instead of `RouteEntry<"...", Method<...>>` by name.
  */
 export type RouteEntry<
   Path extends string,
   Route extends AnyRouter
-> = {
+> = Prettify<{
   readonly path: Path
   readonly route: Route
   readonly methods: readonly MethodKeys[]
   readonly url: Analyze<string>
-}
+}>

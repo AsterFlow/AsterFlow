@@ -1,6 +1,5 @@
-import type { AnyRouter, MethodKeys } from '@asterflow/router'
+import type { MethodKeys } from '@asterflow/router'
 import type { Reminist } from 'reminist'
-import type { RouteEntry } from './routes'
 
 /**
  * Represents a generic Reminist instance, used for managing routes.
@@ -9,11 +8,16 @@ import type { RouteEntry } from './routes'
 export type AnyReminist = Reminist<any, any>
 
 /**
- * Infers the paths from a Reminist instance.
+ * The `Routers` type param's actual starting value for a fresh `AsterFlow`
+ * instance (before any `.method()`/`.router()` call). Deliberately NOT
+ * `AnyReminist`: a bare `any` context here makes
+ * `InferReministContext<Routers> extends Record<...> ? A : B` (used by
+ * `.method()`/`.router()`/`.controller()`/`.middleware()`'s return type)
+ * collapse to `any` - TS special-cases a naked `any` in a conditional
+ * type's checked position to `A | B`, and `any & X` is `any`, so the whole
+ * union collapses back to `any`. An empty, concrete context sidesteps that.
  */
-export type InferReministPath<T> = T extends Reminist<infer C, any>
-  ? Extract<keyof C, string>[]
-  : never
+export type DefaultReminist = Reminist<{}, MethodKeys[]>
 
 /**
  * Infers the context from a Reminist instance.
@@ -21,16 +25,3 @@ export type InferReministPath<T> = T extends Reminist<infer C, any>
 export type InferReministContext<T> = T extends Reminist<infer C, any>
   ? C
   : never
-
-/**
- * Reminist context that preserves specific route information.
- * Each path maps to its specific typed route.
- */
-export type ReministContext<
-  PathsAndRoutes extends Record<string, AnyRouter>
-> = {
-    readonly [Path in keyof PathsAndRoutes]: RouteEntry<
-      Path extends string ? Path : never,
-      PathsAndRoutes[Path]
-    >
-  }
