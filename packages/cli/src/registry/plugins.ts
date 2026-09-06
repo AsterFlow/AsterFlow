@@ -1,7 +1,6 @@
 export interface PluginDefinition {
   id: string
   packageName: string
-  version: string
   description: string
   /** Binding name imported from the plugin's package, e.g. `multipartPlugin`. */
   importName: string
@@ -15,7 +14,6 @@ export const PLUGIN_REGISTRY: Record<string, PluginDefinition> = {
   fs: {
     id: 'fs',
     packageName: '@asterflow/fs',
-    version: '^1.0.7',
     description: 'File system-based routing - routes are discovered from a routes/ directory.',
     importName: 'fsRoutingPlugin',
     useSnippet: '.use(fsRoutingPlugin, { routes })',
@@ -24,7 +22,6 @@ export const PLUGIN_REGISTRY: Record<string, PluginDefinition> = {
   multipart: {
     id: 'multipart',
     packageName: '@asterflow/multipart',
-    version: '^1.0.0',
     description: 'multipart/form-data parsing (file uploads), with per-route type-safe field criteria.',
     importName: 'multipartPlugin',
     useSnippet: '.use(multipartPlugin, { limits: { fileSize: 10 * 1024 * 1024 } })',

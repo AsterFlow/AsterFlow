@@ -3,6 +3,7 @@ import { existsSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { join, resolve } from 'path'
 import { promisify } from 'util'
+import { resolveAsterflowVersion } from '../helpers/npmVersion'
 import { PLUGIN_REGISTRY } from '../registry/plugins'
 import { log } from '../utils/log'
 import { addCommand, detectPackageManager } from '../utils/packageManager'
@@ -48,7 +49,8 @@ export async function runAdd({ names, directory }: AddOptions): Promise<void> {
   const alreadyPresent = plugins.filter((plugin) => pkg.dependencies![plugin.packageName])
   const toAdd = plugins.filter((plugin) => !pkg.dependencies![plugin.packageName])
 
-  for (const plugin of toAdd) pkg.dependencies![plugin.packageName] = plugin.version
+  const resolvedVersions = await Promise.all(toAdd.map((plugin) => resolveAsterflowVersion(plugin.packageName)))
+  toAdd.forEach((plugin, index) => { pkg.dependencies![plugin.packageName] = resolvedVersions[index]! })
   pkg.dependencies = Object.fromEntries(Object.entries(pkg.dependencies!).sort(([a], [b]) => a.localeCompare(b)))
 
   if (toAdd.length > 0) {

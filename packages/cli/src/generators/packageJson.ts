@@ -1,3 +1,4 @@
+import { resolveAsterflowVersion } from '../helpers/npmVersion'
 import type { AdapterDefinition } from '../registry/adapters'
 import type { PluginDefinition } from '../registry/plugins'
 
@@ -7,17 +8,24 @@ export interface PackageJsonOptions {
   plugins: PluginDefinition[]
 }
 
-export function generatePackage({ name, adapter, plugins }: PackageJsonOptions): string {
+export async function generatePackage({ name, adapter, plugins }: PackageJsonOptions): Promise<string> {
   const usesFs = plugins.some((plugin) => plugin.id === 'fs')
 
+  const [asterflowVersion, adapterVersion, cliVersion, pluginVersions] = await Promise.all([
+    resolveAsterflowVersion('asterflow'),
+    resolveAsterflowVersion('@asterflow/adapter'),
+    usesFs ? resolveAsterflowVersion('@asterflow/cli') : Promise.resolve(null),
+    Promise.all(plugins.map((plugin) => resolveAsterflowVersion(plugin.packageName)))
+  ])
+
   const dependencies: Record<string, string> = {
-    asterflow: '^0.0.5',
-    '@asterflow/adapter': '^1.0.0',
+    asterflow: asterflowVersion,
+    '@asterflow/adapter': adapterVersion,
     zod: '^3.25.67'
   }
 
   if (adapter.dependency) dependencies[adapter.dependency] = 'latest'
-  for (const plugin of plugins) dependencies[plugin.packageName] = plugin.version
+  plugins.forEach((plugin, index) => { dependencies[plugin.packageName] = pluginVersions[index]! })
 
   const sorted = Object.fromEntries(Object.entries(dependencies).sort(([a], [b]) => a.localeCompare(b)))
 
@@ -33,7 +41,7 @@ export function generatePackage({ name, adapter, plugins }: PackageJsonOptions):
     typescript: '^5.8.3',
     '@types/bun': 'latest'
   }
-  if (usesFs) devDependencies['@asterflow/cli'] = '^0.1.0'
+  if (usesFs && cliVersion) devDependencies['@asterflow/cli'] = cliVersion
 
   const pkg = {
     name,

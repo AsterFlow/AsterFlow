@@ -213,7 +213,7 @@ export async function runInit(options: InitOptions): Promise<void> {
   const srcDir = join(targetDir, 'src')
   await mkdir(srcDir, { recursive: true })
 
-  await writeFile(join(targetDir, 'package.json'), generatePackage({ name, adapter, plugins }))
+  await writeFile(join(targetDir, 'package.json'), await generatePackage({ name, adapter, plugins }))
   await copyTemplate('tsconfig.json', join(targetDir, 'tsconfig.json'))
   await writeFile(join(srcDir, 'index.ts'), generateEntry({ adapter, plugins, stub: templateIds.length > 0 }))
 
