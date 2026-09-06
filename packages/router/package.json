@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/router",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Typed route and middleware definitions (Method, Router, Middleware) for AsterFlow applications.",
   "keywords": [
     "asterflow",

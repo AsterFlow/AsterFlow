@@ -1,8 +1,13 @@
 {
   "name": "@asterflow/cli",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "CLI for scaffolding AsterFlow projects, adding plugins, and generating the static fs-routing manifest.",
-  "keywords": ["asterflow", "cli", "scaffolding", "generator"],
+  "keywords": [
+    "asterflow",
+    "cli",
+    "scaffolding",
+    "generator"
+  ],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
