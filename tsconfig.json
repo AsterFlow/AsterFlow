@@ -13,6 +13,12 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+
+    // Required by TypeORM's `@Entity()`/`@Column()` decorators (example/src/entities)
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+
     "baseUrl": ".",
     "paths": {
       "asterflow": ["core/src/index.ts"],
