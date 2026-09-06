@@ -1,9 +1,10 @@
 import type { Runtime } from '@asterflow/adapter'
 import type { AnyAsterflow } from 'asterflow'
 import type { Responders } from '@asterflow/response'
-import type { MethodBuilderOptions, MethodHandler, MethodKeys, MethodOptions } from '../types/method'
+import type { DefaultMethodProps, MethodBuilderOptions, MethodCallProps, MethodHandler, MethodKeys, MethodOptions, MethodProps } from '../types/method'
 import type { MiddlewareOutput } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
+import type { MergeProps } from '../types/utils'
 import type { Middleware } from './Middleware'
 
 /**
@@ -11,43 +12,22 @@ import type { Middleware } from './Middleware'
  * - while `Handler` is `undefined` (pending) - the terminal chain call
  * itself, `<H extends MethodHandler<...>>(fn: H) => Method<..., H>`.
  */
-export type MethodHandlerSlot<
-  Path extends string,
-  Drive extends Runtime,
-  Responder extends Responders,
-  MethodKey extends MethodKeys,
-  Schema extends AnySchema,
-  Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[],
-  Context extends MiddlewareOutput<Middlewares>,
-  Instance extends AnyAsterflow,
-  RequestExt extends Record<string, unknown>,
-  Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt> | undefined
-> = Handler extends undefined
-  ? <H extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt>>(
+export type MethodHandlerSlot<Props extends MethodProps> = Props['handler'] extends undefined
+  ? <H extends MethodHandler<Props['path'], Props['drive'], Props['responder'], Props['schema'], Props['middlewares'], Props['context'], Props['instance'], Props['requestExt']>>(
       fn: H
-    ) => Method<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, RequestExt, H>
-  : Handler
+    ) => Method<MergeProps<Props, { handler: H }>>
+  : Props['handler']
 
 export class Method<
-  Responder extends Responders,
-  const Path extends string = string,
-  const Drive extends Runtime = Runtime,
-  const MethodKey extends MethodKeys = MethodKeys,
-  const Schema extends AnySchema = AnySchema,
-  const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
-  const Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
-  const Instance extends AnyAsterflow = AnyAsterflow,
-  const RequestExt extends Record<string, unknown> = {},
-  const Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt> | undefined
-    = MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt>,
+  const Props extends MethodProps = DefaultMethodProps
 >{
-  path: Path
-  param?: Path
-  method: MethodKey
-  schema?: Schema
+  path: Props['path']
+  param?: Props['path']
+  method: Props['methodKey']
+  schema?: Props['schema']
 
   name?: string
-  use?: Middlewares
+  use?: Props['middlewares']
 
   /**
    * While pending (`Handler` is `undefined`), this field's runtime value is
@@ -56,13 +36,13 @@ export class Method<
    * `this`, so it still works detached from `route` (as `Asterflow`'s
    * `runHandler` does). Throws if called with anything but a function.
    */
-  handler: MethodHandlerSlot<Path, Drive, Responder, MethodKey, Schema, Middlewares, Context, Instance, RequestExt, Handler>
+  handler: MethodHandlerSlot<Props>
 
   /** Plugin registrations from `extend` (e.g. multipart's `.multipart(schema)`), read back via `route.extensions.multipart`. */
   readonly extensions: Record<string, unknown> = {}
 
-  constructor (options: MethodOptions<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance>>) {
-    this.path = (options.path ?? options.param) as Path
+  constructor (options: MethodOptions<Props>) {
+    this.path = (options.path ?? options.param) as Props['path']
     this.method = options.method
     this.schema = options.schema
     this.use = options.use
@@ -74,7 +54,7 @@ export class Method<
       }
       (this as unknown as { handler: unknown }).handler = fn
       return this
-    })) as unknown as MethodHandlerSlot<Path, Drive, Responder, MethodKey, Schema, Middlewares, Context, Instance, RequestExt, Handler>
+    })) as unknown as MethodHandlerSlot<Props>
   }
 
   /**
@@ -101,12 +81,12 @@ export class Method<
     const Schema extends AnySchema = AnySchema,
     const Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
   >(
-    options: MethodBuilderOptions<Path, MethodKey, Schema, Middlewares>
-  ): Method<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined> {
+    options: MethodBuilderOptions<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>>
+  ): Method<MethodCallProps<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, {}, undefined>> {
     return new Method({
       ...options,
       handler: undefined
-    } as unknown as MethodOptions<Responder, Path, Drive, MethodKey, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow, MethodHandler<Path, Drive, Responder, Schema, Middlewares, MiddlewareOutput<Middlewares>, AnyAsterflow>>)
+    } as unknown as MethodOptions<any>)
   }
 
   /**
@@ -118,8 +98,8 @@ export class Method<
   extend<E extends Record<string, unknown>>(
     _typeFragment: E,
     runtimeData?: Record<string, unknown>
-  ): Method<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, RequestExt & E, Handler extends undefined ? undefined : any> {
+  ): Method<MergeProps<Props, { requestExt: Props['requestExt'] & E, handler: Props['handler'] extends undefined ? undefined : any }>> {
     if (runtimeData) Object.assign(this.extensions, runtimeData)
-    return this as unknown as Method<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, RequestExt & E, Handler extends undefined ? undefined : any>
+    return this as unknown as Method<MergeProps<Props, { requestExt: Props['requestExt'] & E, handler: Props['handler'] extends undefined ? undefined : any }>>
   }
 }

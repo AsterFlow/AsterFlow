@@ -19,6 +19,20 @@ export type MiddlewareOutput<Ms extends readonly AnyMiddleware[]> =
       : unknown
     : unknown
 
+/**
+ * What a middleware's `onRun` may return: either `next(params)`'s result -
+ * continue the chain, merging `params` into the accumulated `middleware`
+ * context - or an `AsterResponse` (e.g. `response.unauthorized({...})`) to
+ * short-circuit the chain and send that response immediately, without
+ * running the remaining middlewares or the route handler.
+ */
+export type MiddlewareResult<
+  Responder extends Responders = Responders,
+  Schema extends AnySchema = AnySchema,
+  Name extends string = string,
+  Parameters extends Record<string, unknown> = Record<string, unknown>,
+> = MiddlewareOptions<Responder, Schema, Name, Parameters> | AsterResponse<Responder>
+
 export type MiddlewareOptions<
   Responder extends Responders = Responders,
   Schema extends AnySchema = AnySchema,
@@ -31,7 +45,7 @@ export type MiddlewareOptions<
     request: Request<RequestType>
     schema: InferSchema<Schema>
     next:<Parameter extends Record<string, unknown>>(params: Parameter) => MiddlewareOptions<Responder, Schema, Name, Parameter>
-  }): MiddlewareOptions<Responder, Schema, Name, Parameters>
+  }): MiddlewareResult<Responder, Schema, Name, Parameters> | Promise<MiddlewareResult<Responder, Schema, Name, Parameters>>
   /*
   onSuccess?: (args: {
     response: Response<Responder>;

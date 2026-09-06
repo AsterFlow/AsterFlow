@@ -3,8 +3,8 @@ import type { MiddlewareOptions } from '../types/mindleware'
 import type { AnySchema } from '../types/schema'
 
 export class Middleware<
-  Responder extends Responders,
-  Schema extends AnySchema,
+  Responder extends Responders = Responders,
+  Schema extends AnySchema = AnySchema,
   const Name extends string = string,
   const Parameters extends Record<string, unknown> = Record<string, unknown>,
 > {
