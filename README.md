@@ -83,6 +83,8 @@ app.listen({ port: 3000 })
 | [`@asterflow/fs`](plugins/fs/README.md) | File-based routing - generates a static route manifest from a `routes/` directory |
 | [`@asterflow/multipart`](plugins/multipart/README.md) | Parses `multipart/form-data` requests with typed per-route field rules |
 
+Releasing a package? See [VERSIONING.md](VERSIONING.md) for how version bumps work in this repo.
+
 ## 📄 License
 
 MIT

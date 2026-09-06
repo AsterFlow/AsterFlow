@@ -1,0 +1,79 @@
+name: Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package folder or npm name to publish (e.g. router, @asterflow/router, core). Leave empty to publish every package.'
+        required: false
+      bump:
+        description: 'Release type - see VERSIONING.md for what each means in this repo'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - none
+        default: patch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: write # to commit the version bump and push the release tag(s)
+      id-token: write # for npm provenance
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check workspace protocol
+        run: bun run check:workspaces
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: bun run publish --package "${{ inputs.package }}" --bump "${{ inputs.bump }}"
+
+      - name: Commit version bump and tag the release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          changed=$(git diff --name-only -- 'core/package.json' 'packages/*/package.json' 'plugins/*/package.json')
+          if [ -z "$changed" ]; then
+            echo "No version changes to commit"
+            exit 0
+          fi
+
+          git add $changed
+          git commit -m "🔖 Release (${{ inputs.bump }})"
+
+          for f in $changed; do
+            name=$(jq -r .name "$f")
+            version=$(jq -r .version "$f")
+            git tag "$name@$version"
+          done
+
+          git push
+          git push --tags

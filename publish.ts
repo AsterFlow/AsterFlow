@@ -2,13 +2,21 @@ import { existsSync } from 'fs'
 import { readFile, writeFile } from 'fs/promises'
 import { glob } from 'glob'
 import { join } from 'path'
-import { inc } from 'semver'
+import { inc, type ReleaseType } from 'semver'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
 const execAsync = promisify(exec)
+
+/**
+ * See VERSIONING.md for what each part means in this repo. `'none'` skips the
+ * increment entirely and publishes whatever version is already in
+ * package.json - for a package's genuine first release (or a deliberate
+ * manual renumbering) where there's no prior published version to bump from.
+ */
+type Bump = Extract<ReleaseType, 'major' | 'minor' | 'patch'> | 'none'
 
 class Publisher {
   private readonly CLI = '\x1b[34mCLI\x1b[0m'
@@ -17,11 +25,17 @@ class Publisher {
 
   constructor() {}
 
-  private async updateVersion(pkgPath: string): Promise<void> {
+  private async updateVersion(pkgPath: string, bump: Bump): Promise<void> {
+    if (bump === 'none') {
+      const { name, version } = JSON.parse(await readFile(pkgPath, 'utf-8'))
+      console.log(`${this.VERSION} Keeping ${name} at ${version} (--bump none)`)
+      return
+    }
+
     const content = await readFile(pkgPath, 'utf-8')
     const pkg = JSON.parse(content)
-    
-    const newVersion = inc(pkg.version, 'patch')
+
+    const newVersion = inc(pkg.version, bump)
     if (!newVersion) {
       throw new Error(`Failed to increment version for ${pkgPath}`)
     }
@@ -48,8 +62,11 @@ class Publisher {
       }
       
       console.log(`${this.PUBLISH} Running npm publish in: ${publishDir}`)
-      
-      await execAsync('npm publish --access public', {
+
+      // --provenance needs GitHub Actions' OIDC token (`id-token: write`) and fails outside a
+      // supported CI environment, so it's opt-in based on where this is actually running.
+      const provenance = process.env.GITHUB_ACTIONS === 'true' ? ' --provenance' : ''
+      await execAsync(`npm publish --access public${provenance}`, {
         cwd: publishDir
       })
       
@@ -60,7 +77,7 @@ class Publisher {
     }
   }
 
-  public async publish(packageName?: string): Promise<void> {
+  public async publish(packageName?: string, bump: Bump = 'patch'): Promise<void> {
     try {
       let packages: string[]
       
@@ -121,7 +138,7 @@ class Publisher {
       console.log(`${this.CLI} Found packages:`, packages)
 
       for (const pkg of packages) {
-        await this.updateVersion(join(pkg, 'package.json'))
+        await this.updateVersion(join(pkg, 'package.json'), bump)
       }
 
       console.log(`${this.CLI} Running build...`)
@@ -154,6 +171,13 @@ async function main() {
         type: 'string',
         describe: 'Package folder or npm name to publish (e.g., fs, @asterflow/fs, adapter)',
         demandOption: false
+      },
+      bump: {
+        alias: 'b',
+        type: 'string',
+        choices: ['major', 'minor', 'patch', 'none'] as const,
+        default: 'patch' as const,
+        describe: 'Version part to increment - see VERSIONING.md for what each means in this repo'
       }
     })
     .help()
@@ -161,7 +185,7 @@ async function main() {
     .parse()
 
   const publisher = new Publisher()
-  await publisher.publish(argv.package as string | undefined)
+  await publisher.publish(argv.package as string | undefined, argv.bump)
 }
 
 main().catch((error) => {
