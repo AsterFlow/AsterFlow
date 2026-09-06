@@ -1,6 +1,12 @@
 import { ServerResponse } from 'http'
 import type { BaseContext, BodyMap, Responders, ResponseOptions } from '../types/response'
 import type { HttpHeader, Prettify } from '../types/utils'
+import { sniffContentType } from '../utils/sniffContentType'
+
+/** A `Buffer`/`Uint8Array` body is sent as-is (raw bytes), never JSON-serialized. */
+function isBinaryBody(body: unknown): body is Uint8Array {
+  return body instanceof Uint8Array
+}
 
 export class AsterResponse<
   RawResponder extends Responders = Responders,
@@ -41,6 +47,37 @@ export class AsterResponse<
       header: {
         ...this.context.header,
         'Content-Type': 'application/json'
+      }
+    }
+
+    return this as unknown as AsterResponse<RawResponder, BodySchema, StatusCode, NewContext>
+  }
+
+  /**
+   * Sends a raw `Buffer`/`Uint8Array` body (e.g. a file read from disk).
+   * Unlike `send`/`json`, the body is written to the response exactly as
+   * given - never `JSON.stringify`'d or `String()`'d - so the client
+   * receives just the file's bytes, no wrapping object.
+   *
+   * `contentType` is optional: pass it when you already know the MIME type
+   * (cheapest - skips detection entirely). Omitted, it's detected straight
+   * from `data`'s leading magic bytes via `sniffContentType` - O(1)
+   * relative to the payload size, it inspects at most ~12 bytes and never
+   * scans the buffer. Falls back to `application/octet-stream` only if
+   * nothing matches.
+   */
+  file(data: Uint8Array, contentType?: string) {
+    type NewContext = Prettify<{
+      header: Prettify<Context['header'] & { 'Content-Type': string }>
+      cookies: Context['cookies']
+    }>
+
+    this.send(data as unknown as BodySchema[StatusCode])
+    this.context = {
+      ...this.context,
+      header: {
+        ...this.context.header,
+        'Content-Type': contentType ?? sniffContentType(data) ?? 'application/octet-stream'
       }
     }
 
@@ -147,31 +184,45 @@ export class AsterResponse<
     headers.set('Content-Type', 'text/plain')
 
     for (const [k, v] of Object.entries(this.context.header)) headers.set(k, v)
-    if (typeof this.body === 'object' || Array.isArray(this.body)) {
+
+    const binary = isBinaryBody(this.body)
+    if (binary) {
+      if (!('Content-Type' in this.context.header)) headers.set('Content-Type', 'application/octet-stream')
+    } else if (typeof this.body === 'object' || Array.isArray(this.body)) {
       headers.set('Content-Type', 'application/json')
     }
 
     for (const [n, v] of Object.entries(this.context.cookies)) headers.append('Set-Cookie', `${n}=${v}`)
 
-    const body = headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
-    return new globalThis.Response(body, {
+    const body = binary
+      ? this.body
+      : headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
+
+    return new globalThis.Response(body as any, {
       status: this._status as number,
       headers
     })
   }
-  
+
   toServerResponse(output: ServerResponse): void {
     const headers = new Headers()
     headers.set('Content-Type', 'text/plain')
 
     for (const [k, v] of Object.entries(this.context.header)) headers.set(k, v)
-    if (typeof this.body === 'object' || Array.isArray(this.body)) {
+
+    const binary = isBinaryBody(this.body)
+    if (binary) {
+      if (!('Content-Type' in this.context.header)) headers.set('Content-Type', 'application/octet-stream')
+    } else if (typeof this.body === 'object' || Array.isArray(this.body)) {
       headers.set('Content-Type', 'application/json')
     }
 
     for (const [n, v] of Object.entries(this.context.cookies)) headers.append('Set-Cookie', `${n}=${v}`)
 
-    const body = headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
+    const body = binary
+      ? this.body
+      : headers.get('Content-Type') === 'application/json' ? JSON.stringify(this.body) : String(this.body)
+
     output.writeHead(this._status as number, Object.fromEntries(headers))
     output.end(body)
   }
