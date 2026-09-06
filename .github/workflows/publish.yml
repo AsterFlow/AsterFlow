@@ -67,6 +67,9 @@ jobs:
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # npmjs.com 404s the publish PUT when a granular access token is combined with
+          # --provenance (observed directly against this repo's token) - see publish.ts.
+          NPM_NO_PROVENANCE: 'true'
         run: bun run publish --package "${{ inputs.package }}" --bump "${{ inputs.bump }}"
 
       - name: Commit version bump and tag the release
