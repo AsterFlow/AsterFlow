@@ -395,8 +395,12 @@ class DependencyManager {
           
           const targetPackage = this.registry.getPackageByName(depName)
           if (targetPackage) {
-            console.log(`${this.CLI} Replacing ${depName}@${depVersion} with ${targetPackage.version}`)
-            deps[depName] = targetPackage.version
+            // A caret range, not an exact pin: an internal dependency should be able to
+            // absorb a compatible patch/minor release of another AsterFlow package without
+            // this package needing to be republished too - see VERSIONING.md.
+            const range = `^${targetPackage.version}`
+            console.log(`${this.CLI} Replacing ${depName}@${depVersion} with ${range}`)
+            deps[depName] = range
             hasChanges = true
           } else {
             console.warn(`⚠️  Cannot resolve workspace dependency: ${depName}`)

@@ -1,6 +1,8 @@
 {
   "name": "@asterflow/router",
   "version": "1.0.13",
+  "description": "Typed route and middleware definitions (Method, Router, Middleware) for AsterFlow applications.",
+  "keywords": ["asterflow", "router", "routing", "middleware", "http", "typescript"],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",

@@ -1,6 +1,8 @@
 {
   "name": "@asterflow/fs",
   "version": "1.0.7",
+  "description": "Generates a static route manifest from a file-based routes/ directory and registers it on an AsterFlow app as a plugin.",
+  "keywords": ["asterflow", "plugin", "file-based-routing", "fs-routing"],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",

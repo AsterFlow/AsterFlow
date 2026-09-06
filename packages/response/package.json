@@ -1,6 +1,8 @@
 {
   "name": "@asterflow/response",
   "version": "1.0.10",
+  "description": "Type-safe HTTP response builder with status-code helpers, header/cookie management, and binary file responses.",
+  "keywords": ["asterflow", "response", "http"],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",

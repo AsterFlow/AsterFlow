@@ -1,6 +1,8 @@
 {
   "name": "asterflow",
-  "version": "0.0.5",
+  "version": "1.0.0",
+  "description": "The core framework - ties together adapters, routing, plugins and responses into one typed AsterFlow app.",
+  "keywords": ["asterflow", "http", "framework", "server", "router", "typescript"],
   "main": "dist/cjs/index.cjs",
   "module": "dist/mjs/index.js",
   "types": "dist/types/index.d.ts",
