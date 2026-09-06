@@ -7,43 +7,58 @@ import type { AnyAsterflow, ExtendedAsterflow, RouteEntry } from 'asterflow'
 import type { Plugin } from '../controllers/Plugin'
 import type { AnyRecord, UnionToIntersection } from './utils'
 
+/** `Plugin`'s single generic parameter - the fields it needs to type a plugin. */
+export interface PluginProps {
+  path: string
+  instance: AnyAsterflow
+  config: Record<string, any>
+  decorate: Record<string, any>
+  derive: Record<string, any>
+  extension: Record<string, any>
+}
+
+export type DefaultPluginProps = {
+  path: string
+  instance: AnyAsterflow
+  config: {}
+  decorate: {}
+  derive: {}
+  extension: {}
+}
+
 export type AnyPluginHooks = PluginHooks<AnyAsterflow, AnyRecord, AnyRecord>
-export type AnyPlugin = Plugin<
-  string,
-  AnyAsterflow,
-  AnyRecord,
-  AnyRecord,
-  AnyRecord,
-  AnyRecord
->
+export type AnyPlugin = Plugin<any>
 
 export type AnyPlugins = Record<string, ResolvedPlugin<AnyPlugin>>
 export type AnyPluginInstance = ResolvedPlugin<AnyPlugin> & { hooks: AnyPluginHooks }
 
-export type InferPluginExtension<P> = P extends Plugin<any, any, any, any, any, infer Ext> ? Ext : {}
-export type InferPluginContext<P> = P extends Plugin<any, any, infer Config, infer Decorate, infer Derive, any>
-  ? Prettify<UnionToIntersection<Config | Decorate | Derive>>
+export type InferPluginExtension<P> = P extends Plugin<infer Props extends PluginProps> ? Props['extension'] : {}
+export type InferPluginContext<P> = P extends Plugin<infer Props extends PluginProps>
+  ? Prettify<UnionToIntersection<Props['config'] | Props['decorate'] | Props['derive']>>
   : {}
 
 // Este é o tipo que será armazenado na instância do AsterFlow.
-export type ResolvedPlugin<P extends Plugin<any, any, any, any, any, any>> = P extends Plugin<
-  infer Path, any, any, infer Ctx, any, infer Ext
-> ? {
-  name: Path,
-  context: Ctx,
-  hooks: PluginHooks<any, Ctx, Ext>,
-  _extensionFn?: (app: any, context: Ctx) => Ext,
-  resolvers: Resolver[] 
-} : never
+export type ResolvedPlugin<P extends Plugin<any>> = P extends Plugin<infer Props extends PluginProps>
+  ? {
+    name: Props['path'],
+    // Merges Config, Decorate AND Derive - matches the runtime `_build()`
+    // merge (`{ ...defaultConfig, ...config } as Config & Derive & Decorate`).
+    // Previously (pre-`PluginProps`) this only captured `Decorate`, a
+    // pre-existing bug fixed here.
+    context: InferPluginContext<P>,
+    hooks: PluginHooks<any, InferPluginContext<P>, Props['extension']>,
+    _extensionFn?: (app: any, context: InferPluginContext<P>) => Props['extension'],
+    resolvers: Resolver[]
+  } : never
 
 /**
  * Tipo para extrair o objeto de configuração de um plugin.
  * Ele torna as propriedades com valores padrão opcionais.
  */
-export type InferConfigArgument<P extends Plugin<any, any, any, any, any, any>>
-  = P extends Plugin<any, any, infer C, any, any, any>
-    ? Omit<C, keyof P['defaultConfig']> &
-        Partial<Pick<C, keyof P['defaultConfig'] & keyof C>>
+export type InferConfigArgument<P extends Plugin<any>>
+  = P extends Plugin<infer Props extends PluginProps>
+    ? Omit<Props['config'], keyof P['defaultConfig']> &
+        Partial<Pick<Props['config'], keyof P['defaultConfig'] & keyof Props['config']>>
     : never
 
 /**
