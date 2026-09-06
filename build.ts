@@ -326,28 +326,83 @@ class ESBuildBuilder {
 
     let content = await readFile(filePath, 'utf-8')
 
-    // Regex para encontrar:
-    // Comentários de bloco (`/* ... */`)
-    // Comentários de linha (`// ...`), que são capturados em um grupo
-    const commentRegex = /\/\*[\s\S]*?\*\/|(\/\/[^\r\n]*)/g
-
-    content = content.replace(commentRegex, (match, singleLineComment) => {
-      // Se `singleLineComment` foi capturado, significa que a regex encontrou um `//`
-      if (singleLineComment) {
-        // Verificamos se é um comentário de caminho que queremos preservar
-        if (singleLineComment.startsWith('// core/') || singleLineComment.startsWith('// packages/') || singleLineComment.startsWith('// plugins/')) {
-          return singleLineComment // Mantém o comentário
-        }
-      }
-      // Para todos os outros casos (comentários de bloco ou de linha que não queremos),
-      // retorna uma string vazia, efetivamente removendo-os.
-      return ''
-    })
+    content = this.stripComments(content)
 
     // Remove linhas em branco extras que podem ter sido deixadas para trás
     content = content.replace(/^\s*[\r\n]/gm, '')
 
     await writeFile(filePath, content, 'utf-8')
+  }
+
+  // Strips comments while leaving string/template literals untouched. A plain
+  // `/\/\/[^\r\n]*/` regex can't tell a real `//` comment from a string that merely
+  // starts with `//` (e.g. `'// AUTO-GENERATED ... '`) - it would delete the string's
+  // contents and leave a dangling quote, corrupting the bundle into invalid JS.
+  private stripComments(source: string): string {
+    let out = ''
+    let i = 0
+    const n = source.length
+    type Frame = { type: 'template' } | { type: 'expr'; braceDepth: number }
+    const stack: Frame[] = []
+
+    while (i < n) {
+      const top = stack[stack.length - 1]
+      const c = source[i]
+      const c2 = source[i + 1]
+
+      if (top?.type === 'template') {
+        if (c === '\\') { out += c + (c2 ?? ''); i += 2; continue }
+        if (c === '`') { out += c; stack.pop(); i++; continue }
+        if (c === '$' && c2 === '{') { out += '${'; stack.push({ type: 'expr', braceDepth: 0 }); i += 2; continue }
+        out += c; i++; continue
+      }
+
+      if (c === '`') { out += c; stack.push({ type: 'template' }); i++; continue }
+
+      if (c === '"' || c === '\'') {
+        const quote = c
+        out += c
+        i++
+        while (i < n) {
+          const ch = source[i]
+          if (ch === '\\') { out += ch + (source[i + 1] ?? ''); i += 2; continue }
+          out += ch
+          i++
+          if (ch === quote) break
+        }
+        continue
+      }
+
+      if (c === '/' && c2 === '/') {
+        let end = source.indexOf('\n', i)
+        if (end === -1) end = n
+        const text = source.slice(i, end)
+        if (text.startsWith('// core/') || text.startsWith('// packages/') || text.startsWith('// plugins/')) {
+          out += text
+        }
+        i = end
+        continue
+      }
+
+      if (c === '/' && c2 === '*') {
+        const end = source.indexOf('*/', i + 2)
+        i = end === -1 ? n : end + 2
+        continue
+      }
+
+      if (top?.type === 'expr') {
+        if (c === '{') top.braceDepth++
+        else if (c === '}') {
+          if (top.braceDepth === 0) { stack.pop(); out += c; i++; continue }
+          top.braceDepth--
+        }
+      }
+
+      out += c
+      i++
+    }
+
+    return out
   }
 
   private async copyAssets(sourcePath: string, targetDir: string): Promise<void> {
