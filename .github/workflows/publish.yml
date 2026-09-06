@@ -41,6 +41,20 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Stub out gitignored local-only workspaces
+        # `example/` and `benchmark/` are listed in the root package.json's
+        # `workspaces` array for local dev, but both are gitignored - a fresh
+        # checkout (like this one) doesn't have them, which makes `bun
+        # install` fail with "Workspace not found". Stub minimal manifests so
+        # workspace resolution succeeds without touching local dev behavior.
+        run: |
+          for dir in example benchmark; do
+            if [ ! -f "$dir/package.json" ]; then
+              mkdir -p "$dir"
+              echo "{\"name\": \"$dir\", \"private\": true, \"version\": \"0.0.0\"}" > "$dir/package.json"
+            fi
+          done
+
       - name: Install dependencies
         run: bun install
 
