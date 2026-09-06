@@ -9,6 +9,15 @@
   "typings": "dist/types/index.d.ts",
   "type": "module",
   "license": "MIT",
+  "author": "Ashu11-A",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AsterFlow/AsterFlow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AsterFlow/AsterFlow/issues"
+  },
+  "homepage": "https://github.com/AsterFlow/AsterFlow",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
