@@ -1,6 +1,16 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["bun-types"]
-  }
+    "types": ["bun-types"],
+    "paths": {
+      "asterflow": ["../core/src/index.ts"],
+      "@asterflow/fs": ["../plugins/fs/src/index.ts"],
+      "@asterflow/*": ["./*/src/index.ts"]
+    }
+  },
+  // `templates/` isn't part of this package's own program - its content
+  // (assets read via `fs` at scaffold time, never `import`ed) is meant to be
+  // typechecked as *scaffolded-project* source, which is what
+  // `templates/routes/tsconfig.json` is for.
+  "exclude": ["templates"]
 }

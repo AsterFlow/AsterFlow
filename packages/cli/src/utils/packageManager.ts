@@ -19,6 +19,11 @@ export function detectPackageManager(cwd: string): PackageManager {
   return 'bun'
 }
 
+/** `explicit` (e.g. from `--use-npm`/`--use-pnpm`/`--use-yarn`/`--use-bun`) wins over lockfile detection. */
+export function resolvePackageManager(explicit: PackageManager | undefined, cwd: string): PackageManager {
+  return explicit ?? detectPackageManager(cwd)
+}
+
 export function installCommand(manager: PackageManager): string {
   return manager === 'yarn' ? 'yarn' : `${manager} install`
 }
@@ -26,9 +31,9 @@ export function installCommand(manager: PackageManager): string {
 export function addCommand(manager: PackageManager, packages: string[]): string {
   const list = packages.join(' ')
   switch (manager) {
-    case 'bun': return `bun add ${list}`
-    case 'pnpm': return `pnpm add ${list}`
-    case 'yarn': return `yarn add ${list}`
-    case 'npm': return `npm install ${list}`
+  case 'bun': return `bun add ${list}`
+  case 'pnpm': return `pnpm add ${list}`
+  case 'yarn': return `yarn add ${list}`
+  case 'npm': return `npm install ${list}`
   }
 }

@@ -9,5 +9,5 @@ export function runList(): void {
     console.log(`  ${' '.repeat(12)} ${plugin.description}\n`)
   }
 
-  console.log(chalk.gray(`Install with: asterflow add <name>[,<name>...]\n`))
+  console.log(chalk.gray('Install with: asterflow add <name>[,<name>...]\n'))
 }

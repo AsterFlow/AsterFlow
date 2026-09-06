@@ -1,0 +1,10 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "asterflow": ["../core/src/index.ts"],
+      "@asterflow/multipart": ["../plugins/multipart/src/index.ts"],
+      "@asterflow/*": ["./*/src/index.ts"]
+    }
+  }
+}

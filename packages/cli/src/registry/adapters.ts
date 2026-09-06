@@ -7,8 +7,10 @@ export interface AdapterDefinition {
   imports: string[]
   /** Expression passed as `driver` to `new AsterFlow({ driver: ... })`. */
   driverExpression: string
-  /** Full `app.listen(...)` call (or block) placed at the end of the generated entry file. */
-  listenSnippet: string
+  /** Statement placed before the exported chain, e.g. `const server = express()`. `null` when nothing is needed. */
+  preamble: string | null
+  /** Everything after `.listen` - arguments and callback - appended to the exported chain. */
+  listenCall: string
 }
 
 export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
@@ -18,13 +20,14 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     dependency: null,
     imports: [],
     driverExpression: 'adapters.bun',
-    listenSnippet: `app.listen({ port: 3333 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening on http://localhost:3333')
-})`
+    preamble: null,
+    listenCall: `({ port: 3333 }, (err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    console.log('Server listening on http://localhost:3333')
+  })`
   },
   node: {
     id: 'node',
@@ -32,41 +35,40 @@ export const ADAPTER_REGISTRY: Record<string, AdapterDefinition> = {
     dependency: null,
     imports: [],
     driverExpression: 'adapters.node',
-    listenSnippet: `app.listen({ port: 3333 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening on http://localhost:3333')
-})`
+    preamble: null,
+    listenCall: `({ port: 3333 }, (err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    console.log('Server listening on http://localhost:3333')
+  })`
   },
   express: {
     id: 'express',
     label: 'Express',
     dependency: 'express',
-    imports: [`import express from 'express'`],
+    imports: ['import express from \'express\''],
     driverExpression: 'adapters.express',
-    listenSnippet: `const server = express()
-
-app.listen(server, 3333, () => {
-  console.log('Server listening on http://localhost:3333')
-})`
+    preamble: 'const server = express()',
+    listenCall: `(server, 3333, () => {
+    console.log('Server listening on http://localhost:3333')
+  })`
   },
   fastify: {
     id: 'fastify',
     label: 'Fastify',
     dependency: 'fastify',
-    imports: [`import fastify from 'fastify'`],
+    imports: ['import fastify from \'fastify\''],
     driverExpression: 'adapters.fastify',
-    listenSnippet: `const server = fastify()
-
-app.listen(server, { port: 3333 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening on http://localhost:3333')
-})`
+    preamble: 'const server = fastify()',
+    listenCall: `(server, { port: 3333 }, (err) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    console.log('Server listening on http://localhost:3333')
+  })`
   }
 }
 
