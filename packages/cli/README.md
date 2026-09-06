@@ -15,7 +15,7 @@
 ## 📦 Installation
 
 ```bash
-bunx @asterflow/cli init my-app
+bunx @asterflow/cli@latest init my-app
 ```
 
 ### ✨ Features
@@ -32,7 +32,7 @@ bunx @asterflow/cli init my-app
 Scaffold a new project - interactively, or fully via flags for CI/agents:
 
 ```bash
-bunx @asterflow/cli init my-app --adapter bun --plugins fs,multipart --routes hello,upload --yes
+bunx @asterflow/cli@latest init my-app --adapter bun --plugins fs,multipart --routes hello,upload --yes
 ```
 
 Manage an existing project with the other commands:

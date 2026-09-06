@@ -19,7 +19,7 @@
 ## 📦 Installation
 
 ```bash
-bunx @asterflow/cli init my-app
+bunx @asterflow/cli@latest init my-app
 ```
 
 This scaffolds a project: picks an adapter (Bun, Node, Express or Fastify), optional plugins (file-based routing, multipart uploads), and installs everything for you. See [`@asterflow/cli`'s README](packages/cli/README.md) for flags and the other commands (`add`, `list`, `generate`).
