@@ -10,112 +10,53 @@
 
 </div>
 
-> Unified HTTP request adapter system for AsterFlow.
+> Wraps the native request object of Bun, Node, Express, or Fastify into one typed `AsterRequest`, so the rest of AsterFlow reads requests the same way regardless of runtime.
 
 ## 📦 Installation
 
 ```bash
-npm install @asterflow/request
-# or
 bun install @asterflow/request
 ```
 
-## 💡 About
+### ✨ Features
 
-@asterflow/request is an adapter system that provides a unified interface for handling HTTP requests across different runtimes (Bun, Express, Fastify, and Node.js) in the AsterFlow ecosystem. It standardizes access to request properties and methods, regardless of the runtime being used.
+- **`AsterRequest`** - a single class with `getBody()`, `getHeaders()`, `getMethod()`, `getPathname()`, and a parsed `url` (from `@asterflow/url-parser`), no matter which runtime produced it.
+- **Runtime factories** - `createBunRequest`, `createNodeRequest`, `createExpressRequest`, and `createFastifyRequest` each adapt their native request object into an `AsterRequest`.
+- **Body parsing per runtime** - Bun and Node read and parse the raw body (JSON or `x-www-form-urlencoded`); Express and Fastify reuse the body their own middleware already parsed.
+- **`.extend(extension)`** - attaches extra typed properties to a request instance (used by plugins like multipart to add parsed file data) and returns the widened type.
+- **Typed by `Runtime`** - `AsterRequest<Drive>` is generic over the `Runtime` enum from `@asterflow/adapter`, so `raw` is typed as the correct native request for that runtime.
 
-## ✨ Features
+## ❓ How to Use
 
-- **Multiple Adapters:** Support for Bun, Express, Fastify, and Node.js
-- **Unified Interface:** Consistent API for request handling
-- **Type Safety:** Full TypeScript support
-- **AsterFlow Integration:** Designed to work seamlessly with the AsterFlow framework
-- **Body Handling:** Support for different request body types
-- **Headers Management:** Unified interface for header manipulation
+Adapt a native request to `AsterRequest` and read from it the same way regardless of runtime:
 
-## 🚀 Usage
-
-### Express Adapter
-
-```typescript
-import { ExpressRequest } from '@asterflow/request'
-import express from 'express'
-
-const app = express()
-
-app.use(async (req, res) => {
-  const request = new ExpressRequest(req)
-  
-  // Unified access to request properties
-  const body = await request.getBody()
-  const headers = request.getHeaders()
-  const method = request.getMethod()
-  const pathname = request.getPathname()
-})
-```
-
-### Bun Adapter
-
-```typescript
-import { BunRequest } from '@asterflow/request'
+```ts
+import { createBunRequest } from '@asterflow/request'
 
 Bun.serve({
   async fetch(req) {
-    const request = new BunRequest(req)
-    
-    // Same interface as other adapters
+    const request = createBunRequest(req)
+
     const body = await request.getBody()
-    const headers = request.getHeaders()
-    const method = request.getMethod()
-    const pathname = request.getPathname()
+    const { pathname } = request.url // parsed by @asterflow/url-parser
   }
 })
 ```
 
-### Fastify Adapter
+Swap the factory and the rest of the code stays the same:
 
-```typescript
-import { FastifyRequest } from '@asterflow/request'
-import Fastify from 'fastify'
-
-const app = Fastify()
-
-app.all('*', async (req) => {
-  const request = new FastifyRequest(req)
-  
-  // Consistent interface
-  const body = await request.getBody()
-  const headers = request.getHeaders()
-  const method = request.getMethod()
-  const pathname = request.getPathname()
-})
-```
-
-### Node.js Adapter
-
-```typescript
-import { NodeRequest } from '@asterflow/request'
-import { createServer } from 'http'
-
-createServer(async (req, res) => {
-  const request = new NodeRequest(req)
-  
-  // Same methods across all adapters
-  const body = await request.getBody()
-  const headers = request.getHeaders()
-  const method = request.getMethod()
-  const pathname = request.getPathname()
-})
+```ts
+import { createExpressRequest } from '@asterflow/request'
+// const request = createExpressRequest(req)
 ```
 
 ## 🔗 Related Packages
 
-- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
-- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
-- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
-- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
-- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
+- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - supplies the `Runtime` enum this package's types key off of, and calls this package's `create*Request` factories to build requests for each runtime
+- [asterflow](https://www.npmjs.com/package/asterflow) - core framework, uses `Request` as the request type passed into handlers
+- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - imports `Request`/`AsterRequest` as the request type for route and middleware handlers
+- [@asterflow/multipart](https://www.npmjs.com/package/@asterflow/multipart) - extends `AsterRequest` via `.extend()` to attach parsed multipart form data
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+This project is licensed under the [MIT License](../../LICENSE).

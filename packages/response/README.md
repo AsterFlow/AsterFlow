@@ -10,202 +10,52 @@
 
 </div>
 
-> Unified HTTP response adapter system for AsterFlow applications.
+> Type-safe HTTP response builder with status-code helpers, header/cookie management, and binary file responses.
 
 ## 📦 Installation
 
 ```bash
-npm install @asterflow/response
-# or
 bun install @asterflow/response
 ```
 
-## 💡 About
+### ✨ Features
 
-@asterflow/response provides a type-safe, unified response system for AsterFlow applications. It standardizes HTTP response handling across different runtimes while maintaining full type safety and providing convenient helper methods for common HTTP status codes.
+- **Typed status codes** — `response.status(code)` narrows the accepted body type to what that code expects
+- **Shorthand helpers** — `success`, `created`, `noContent`, `badRequest`, `unauthorized`, `forbidden`, `notFound`, `validationError`, `internalServerError`
+- **JSON responses** — `.json(data)` sends the body and sets `Content-Type: application/json`
+- **Binary/file responses** — `.file(data, contentType?)` sends a `Uint8Array` as raw bytes; without a `contentType`, it's detected from the data's magic bytes (PNG, JPEG, GIF, PDF, BMP, ICO, GZIP, ZIP, WEBP), falling back to `application/octet-stream`
+- **Headers and cookies** — `setHeader`/`setCookie`, each chainable and reflected in the response's type
+- **Runtime conversion** — `toResponse()` for the standard Web `Response`, `toServerResponse(res)` for Node's `http.ServerResponse`
 
-## ✨ Features
+## ❓ How to Use
 
-- **Complete Type Safety:** Full TypeScript support with type inference for responses, status codes, and body types
-- **Status Code Helpers:** Built-in methods for common HTTP status codes (200, 201, 400, 404, etc.)
-- **Header Management:** Type-safe header manipulation with method chaining
-- **Cookie Support:** Integrated cookie management system
-- **Content Type Detection:** Automatic content type detection and JSON serialization
-- **Multi-Runtime Support:** Compatible with standard Response and Node.js ServerResponse
-- **Immutable Design:** Response objects are immutable, promoting safer code patterns
-- **Method Chaining:** Fluent API for building complex responses
+```ts
+import { AsterResponse } from '@asterflow/response'
 
-## 🚀 Usage
-
-### Basic Response
-
-```typescript
-import { Response } from '@asterflow/response'
-
-// Simple text response
-const response = new Response()
-  .success({ message: 'Hello World!' })
-
-// With status code
-const response = new Response()
+const response = new AsterResponse()
   .status(201)
-  .send({ id: 1, name: 'User' })
+  .setHeader('X-Request-Id', 'abc123')
+  .json({ id: 1, name: 'User' })
 ```
 
-### Status Code Helpers
+Sending a file works the same way — pass the bytes, and the content type is sniffed automatically if you don't already know it:
 
-```typescript
-import { Response } from '@asterflow/response'
+```ts
+import { readFile } from 'fs/promises'
+import { AsterResponse } from '@asterflow/response'
 
-// Success responses
-const success = new Response().success({ data: 'Success!' })
-const created = new Response().created({ id: 1 })
-const noContent = new Response().noContent()
-
-// Error responses
-const badRequest = new Response().badRequest({ error: 'Invalid input' })
-const unauthorized = new Response().unauthorized({ error: 'Not authenticated' })
-const forbidden = new Response().forbidden({ error: 'Access denied' })
-const notFound = new Response().notFound({ error: 'Resource not found' })
-const zodError = new Response().zodError({ errors: ['Validation failed'] })
+const data = await readFile('avatar.png')
+const response = new AsterResponse().file(data) // Content-Type: image/png
 ```
 
-### Headers and Cookies
-
-```typescript
-import { Response } from '@asterflow/response'
-
-const response = new Response()
-  .success({ message: 'Hello!' })
-  .setHeader('X-Custom-Header', 'custom-value')
-  .setHeader('Cache-Control', 'no-cache')
-  .setCookie('session', 'abc123')
-  .setCookie('theme', 'dark')
-
-// Headers and cookies are fully typed
-console.log(response.header) // Map with typed entries
-console.log(response.cookies) // Map with typed entries
-```
-
-### JSON Responses
-
-```typescript
-import { Response } from '@asterflow/response'
-
-// Automatic JSON serialization
-const jsonResponse = new Response()
-  .json({ 
-    users: [
-      { id: 1, name: 'John' },
-      { id: 2, name: 'Jane' }
-    ]
-  })
-
-// Content-Type automatically set to application/json
-```
-
-### Integration with Different Runtimes
-
-#### Standard Web API
-
-```typescript
-import { Response } from '@asterflow/response'
-
-const response = new Response()
-  .success({ message: 'Hello World!' })
-
-// Convert to standard Response
-const webResponse = response.toResponse()
-```
-
-#### Node.js HTTP Server
-
-```typescript
-import { Response } from '@asterflow/response'
-import { createServer } from 'http'
-
-createServer((req, res) => {
-  const response = new Response()
-    .success({ message: 'Hello from Node.js!' })
-  
-  // Convert to ServerResponse
-  response.toServerResponse(res)
-})
-```
-
-### Advanced Type Safety
-
-```typescript
-import { Response } from '@asterflow/response'
-
-// Define custom response types
-type MyResponders = {
-  200: { message: string; data: unknown }
-  201: { id: number; message: string }
-  400: { error: string; details?: string[] }
-  404: { error: string }
-}
-
-const response = new Response<MyResponders>()
-  .success({ message: 'Success!', data: { id: 1 } }) // Fully typed
-  
-// TypeScript will enforce the correct shape for each status code
-```
-
-### Method Chaining
-
-```typescript
-import { Response } from '@asterflow/response'
-
-const response = new Response()
-  .status(201)
-  .setHeader('Location', '/users/123')
-  .setHeader('X-Request-ID', 'req-123')
-  .setCookie('last-action', 'create-user')
-  .json({ 
-    id: 123, 
-    message: 'User created successfully' 
-  })
-```
-
-## 🔧 API Reference
-
-### Core Methods
-
-- `status(code)` - Set HTTP status code
-- `getStatus()` - Get current status code
-- `send(data)` - Send response with data
-- `json(data)` - Send JSON response with proper Content-Type
-
-### Status Code Helpers
-
-- `success(data)` - 200 OK
-- `created(data)` - 201 Created
-- `noContent(data)` - 204 No Content
-- `badRequest(data)` - 400 Bad Request
-- `unauthorized(data)` - 401 Unauthorized
-- `forbidden(data)` - 403 Forbidden
-- `notFound(data)` - 404 Not Found
-- `zodError(data)` - 422 Unprocessable Entity
-
-### Header and Cookie Management
-
-- `setHeader(name, value)` - Add/update header
-- `setCookie(name, value)` - Add/update cookie
-
-### Runtime Conversion
-
-- `toResponse()` - Convert to standard Web API Response
-- `toServerResponse(serverRes)` - Write to Node.js ServerResponse
+Convert the finished response for whichever runtime you're on: `response.toResponse()` or `response.toServerResponse(res)`.
 
 ## 🔗 Related Packages
 
-- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
-- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
-- [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes
-- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
-- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
+- Depended on by [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) — builds error responses and passes `AsterResponse` to its runtime adapters
+- Depended on by [@asterflow/multipart](https://www.npmjs.com/package/@asterflow/multipart) — returns `AsterResponse` errors for malformed multipart requests
+- Depended on by [asterflow](https://www.npmjs.com/package/asterflow) — the core framework's request handler works with `AsterResponse`
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+This project is licensed under the [MIT License](../../LICENSE).

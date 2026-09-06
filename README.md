@@ -14,258 +14,75 @@
 
 </div>
 
-## 💡 About
+> AsterFlow is a modular, strongly typed framework for building HTTP APIs in TypeScript. It runs on Node, Bun, Express or Fastify through a shared adapter layer, and keeps routes, middleware, schemas and plugins fully typed end to end.
 
-AsterFlow is a **modular**, **strongly typed** framework for building HTTP APIs in TypeScript.
+## 📦 Installation
 
-### 📜 History
+```bash
+bunx @asterflow/cli init my-app
+```
 
-AsterFlow is a clean rewrite of [base-fastify](https://github.com/AsterFlow/base-fastify), a project I originally created to improve my own workflow. It evolved substantially as I developed it. The name combines my nickname "Ashu" + "Router" + "Flow" (inspired by TensorFlow). I built it out of frustration with the unnecessary complexity of other frameworks—often you end up writing dozens of type definition files instead of focusing on the routes themselves, with needless modularization that only adds cognitive overhead. AsterFlow simplifies that process, and I hope it makes your life easier too!
-
-I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlow/Kython), which I developed alongside [Drylian](https://github.com/drylian) as an experiment to see who could go further without using AI.
+This scaffolds a project: picks an adapter (Bun, Node, Express or Fastify), optional plugins (file-based routing, multipart uploads), and installs everything for you. See [`@asterflow/cli`'s README](packages/cli/README.md) for flags and the other commands (`add`, `list`, `generate`).
 
 ### ✨ Features
 
-- **Dynamic, Contextual Typing:** Every route added to the router automatically enriches its type context—no external file generation required.
-- **Parameter Validation:** Natively support Zod or @caeljs/config for per-route schema validation.
-- **Multi-Server Compatibility:** Abstractions for Node.js, Bun, Express, and Fastify.
-- **tRPC-Inspired API:** Consume routes in a fully type-safe manner without auxiliary files.
-- **Standardized Response Handling:** Type-safe response system with status helpers and unified format handling.
-- **Package-Based Architecture:** Core, Driver, and Router modules are decoupled for maximum scalability.
+- **Full type inference** - every route registered narrows the app's type, so path params, schema and middleware context are known at every call site, no code generation needed.
+- **Multi-runtime** - the same app runs on Node's `http`, `Bun.serve`, Express or Fastify; swap the driver, keep the routes.
+- **Typed middleware chain** - a route's `use` middlewares run before schema validation and can short-circuit with a response at any point.
+- **Native schema validation** - Zod or `@caeljs/config` schemas validate the request body and infer its type straight into the handler.
+- **Plugin system** - `.use(plugin, config)` extends the instance and taps into `beforeInitialize`/`afterInitialize`/`onRequest`/`onResponse` hooks.
+- **Trie-based routing** - routes are matched with `reminist`, keyed by HTTP method, with typed dynamic and catch-all params.
+- **Type-safe responses** - status-coded helpers (`success`, `created`, `notFound`, ...) that narrow the expected body per status.
+
+## ❓ How to Use
+
+A minimal app with a validated route:
+
+```ts
+import { AsterFlow } from 'asterflow'
+import { z } from 'zod'
+
+const app = new AsterFlow() // defaults to the Node adapter
+
+app.method('post', {
+  path: '/users',
+  schema: z.object({ name: z.string() }),
+  handler({ schema, response }) {
+    return response.created({ name: schema.name })
+  }
+})
+
+app.listen({ port: 3000 })
+```
+
+Swap the runtime and add a plugin without touching the routes:
+
+```ts
+import { AsterFlow } from 'asterflow'
+import { adapters } from '@asterflow/adapter'
+import { fsRoutingPlugin } from '@asterflow/fs'
+import routes from './routes.gen'
+
+const app = new AsterFlow({ driver: adapters.bun })
+  .use(fsRoutingPlugin, { routes })
+
+app.listen({ port: 3000 })
+```
 
 ## 📦 Packages
 
 | Package | Description |
-| --------------------- | --------------------------------------------------------------------------------- |
-| `asterflow` | The heart of the framework, providing server initialization and configuration with strong typing |
-| `@asterflow/adapter` | HTTP adapters for different runtimes (Node.js, Bun, Express, Fastify) |
-| `@asterflow/request` | Unified HTTP request adapter system |
-| `@asterflow/response` | Type-safe HTTP response system with status helpers and runtime compatibility |
-| `@asterflow/router` | Type-safe routing system with middleware and validation support |
-| `@asterflow/cli` | Scaffolding and plugin management CLI (`asterflow init`, `add`, `list`, `generate`) |
-
-## Installation
-
-AsterFlow is split across several `@asterflow/*` packages (adapter, router, response, plugins, ...) that need to be installed and wired together consistently, so `npm install asterflow` alone isn't enough - use the CLI to scaffold a project instead. It picks an adapter, optional plugins (file-system routing, multipart uploads), and installs the right dependencies for you:
-
-```bash
-npx @asterflow/cli init my-app
-# or: bunx @asterflow/cli init my-app / pnpm dlx @asterflow/cli init my-app
-
-cd my-app
-npm run dev
-```
-
-Every prompt has a matching flag for non-interactive use (CI, scripts, agents):
-
-```bash
-npx @asterflow/cli init my-app --adapter bun --plugins fs --yes
-```
-
-See [`@asterflow/cli`'s README](packages/cli/README.md) for the full command reference (`init`, `add`, `list`, `generate`).
-
-### ✨ Features
-
-- **HTTP Adapters:** Native support for Node.js, Bun, Express and Fastify through the adapter system
-- **High-Performance Routing:** Optimized routing system using prefix tree
-- **Parameter Validation:** Native support for Zod and @caeljs/config
-- **Advanced URL Analysis:** URL parser with AST support and automatic typing
-- **Middleware System:** Full middleware support with typed context
-- **Standardized Responses:** Type-safe response system with status helpers and runtime compatibility
-- **Modular Architecture:** Decoupled packages for maximum scalability
-- **Dynamic Typing:** Automatic type inference without external files
-- **tRPC-Inspired API:** Fully type-safe route consumption
-
-## ❓ How to Use
-
-### 🚀 Basic Setup
-
-```typescript
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import fastify from 'fastify'
-
-const server = fastify()
-const aster = new AsterFlow({ 
-  driver: adapters.fastify 
-})
-
-aster.listen(server, { port: 3000 })
-```
-
-### 🎯 Basic Routes
-
-<details>
-  <summary>Simple Method</summary>
-
-```ts
-import { Method } from '@asterflow/router'
-
-export default new Method({
-  path: '/users/:id.number', // Support for typed parameters
-  method: 'get',
-  handler: ({ response, url }) => {
-    const { id } = url.getParams() // id is automatically typed as number
-    return response.success({ id })
-  }
-})
-```
-</details>
-
-<details>
-  <summary>Router with Middleware</summary>
-
-```ts
-import { Router, Middleware } from '@asterflow/router'
-
-const authMiddleware = new Middleware({
-  name: 'auth',
-  onRun({ next }) {
-    return next({
-      user: { id: 1, name: 'John' }
-    })
-  }
-})
-
-export default new Router({
-  path: '/protected',
-  use: [authMiddleware],
-  methods: {
-    get({ response, middleware }) {
-      return response.success({ user: middleware.user })
-    }
-  }
-})
-```
-</details>
-
-### 🔍 Advanced Validation
-
-<details>
-  <summary>Validation with Zod</summary>
-
-```ts
-import { Method } from '@asterflow/router'
-import { z } from 'zod'
-
-export default new Method({
-  path: '/users',
-  method: 'post',
-  schema: z.object({
-    name: z.string(),
-    email: z.string().email(),
-    age: z.number().min(18)
-  }),
-  handler: ({ response, schema }) => {
-    return response.created({ user: schema }) // Automatically typed
-  }
-})
-```
-</details>
-
-<details>
-  <summary>Validation with CaelJS</summary>
-
-```ts
-import { Method } from '@asterflow/router'
-import { c } from '@caeljs/config'
-
-export default new Method({
-  path: '/users',
-  method: 'post',
-  schema: c.object({
-    name: c.string(),
-    email: c.string(),
-    age: c.number().min(18)
-  }),
-  handler: ({ response, schema }) => {
-    return response.created({ user: schema })
-  }
-})
-```
-</details>
-
-### 🌐 HTTP Adapters
-
-<details>
-  <summary>Express Example</summary>
-
-```ts
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import express from 'express'
-
-const app = express()
-const aster = new AsterFlow({ 
-  driver: adapters.express 
-})
-
-// Express middleware
-app.use(express.json())
-
-// AsterFlow routes
-aster.router({
-  basePath: '/api',
-  controllers: [/* your routes */]
-})
-
-aster.listen(app, 3000)
-```
-</details>
-
-<details>
-  <summary>Node.js HTTP Example</summary>
-
-```ts
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import { createServer } from 'http'
-
-const server = createServer()
-const aster = new AsterFlow({ 
-  driver: adapters.node 
-})
-
-// AsterFlow routes
-aster.router({
-  basePath: '/api',
-  controllers: [/* your routes */]
-})
-
-aster.listen(server, { port: 3000 })
-```
-</details>
-
-<details>
-  <summary>Bun Example</summary>
-
-```ts
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-
-const aster = new AsterFlow({ 
-  driver: adapters.bun 
-})
-
-// AsterFlow routes
-aster.router({
-  basePath: '/api',
-  controllers: [/* your routes */]
-})
-
-aster.listen(null, { port: 3000 })
-```
-</details>
-
-## ⭐ Recommendations
-
-If you're exploring alternatives, you might also like:
-
-- [ElysiaJS](https://elysiajs.com) - Minimal web framework for Bun
-- [tRPC](https://trpc.io/) - Type-safe RPC framework
-- [Fastify](https://fastify.io/) - Fast and low overhead web framework
-- [Express](https://expressjs.com/) - Minimal web framework for Node.js
+| --- | --- |
+| [`asterflow`](core/README.md) | The core framework - ties adapters, routing, plugins and responses into one typed app |
+| [`@asterflow/adapter`](packages/adapter/README.md) | Wires a runtime's native server (Bun, Node, Express, Fastify) into AsterFlow |
+| [`@asterflow/router`](packages/router/README.md) | Typed route and middleware definitions (`Method`, `Router`, `Middleware`) |
+| [`@asterflow/request`](packages/request/README.md) | Wraps each runtime's native request into one typed `AsterRequest` |
+| [`@asterflow/response`](packages/response/README.md) | Type-safe HTTP response builder with status-code helpers |
+| [`@asterflow/plugin`](packages/plugin/README.md) | Typed builder for writing AsterFlow plugins |
+| [`@asterflow/cli`](packages/cli/README.md) | Scaffolds projects, adds plugins, generates the fs-routing manifest |
+| [`@asterflow/fs`](plugins/fs/README.md) | File-based routing - generates a static route manifest from a `routes/` directory |
+| [`@asterflow/multipart`](plugins/multipart/README.md) | Parses `multipart/form-data` requests with typed per-route field rules |
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+MIT

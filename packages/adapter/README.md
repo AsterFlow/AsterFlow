@@ -10,177 +10,54 @@
 
 </div>
 
-> HTTP adapters for the AsterFlow framework, providing a unified interface for different runtimes.
+> Wires a runtime's native server (Bun.serve, Node's `http`, Express, Fastify) into AsterFlow, converting native requests to `Request` and sending back `AsterResponse` the same way regardless of runtime.
 
 ## 📦 Installation
 
 ```bash
-npm install @asterflow/adapter
-# or
 bun install @asterflow/adapter
 ```
 
-## 💡 About
+### ✨ Features
 
-@asterflow/adapter is an HTTP adapter system that allows AsterFlow applications to run on different execution environments. The package provides an abstraction layer that unifies the interface of different HTTP servers, allowing you to write your code once and run it on any supported runtime.
+- **`adapters`** - a ready-made `Adapter` instance for each runtime: `adapters.bun`, `adapters.node`, `adapters.express`, `adapters.fastify`
+- **`Runtime`** - the enum (`Bun`, `Node`, `Express`, `Fastify`) that types requests, listen arguments, and adapters to their runtime
+- **`Adapter`** - a small class holding a `runtime`, a `listen(...)` function typed to that runtime's native `listen`/`serve` signature, and an `onRequest` hook that AsterFlow assigns to route native requests into its handler
+- **Request conversion per runtime** - each adapter calls the matching `create*Request` factory from `@asterflow/request` (`createBunRequest`, `createNodeRequest`, `createExpressRequest`, `createFastifyRequest`) before handing the request to `onRequest`
+- **Fallback response** - if `listen()` is called before `onRequest` is set, every adapter responds with a 500 instead of crashing
+- **Error-to-response conversion** - `toErrorResponse(err)` turns a thrown value (an `Error`, an already-built `AsterResponse`, or anything else) into a JSON `AsterResponse`; the Node adapter uses it to catch per-request errors and return a 500 instead of hanging the connection
 
-## ✨ Features
+## ❓ How to Use
 
-- **Multiple Runtimes:** Native support for:
-  - Node.js HTTP Server
-  - Bun
-  - Express
-  - Fastify
-- **Unified Interface:** Consistent API regardless of runtime
-- **Error Handling:** Robust error handling system with standardized responses
-- **Strong Typing:** Full TypeScript support with type inference
-- **Router Integration:** Works seamlessly with AsterFlow's routing system
-- **Zero Configuration:** Works immediately after installation
-- **Middleware Support:** Compatible with runtime-specific middleware
+Pick an adapter and pass it as the `driver` when creating an AsterFlow app — everything else (routes, `.listen()`) stays the same:
 
-## 🚀 Usage
-
-### Basic Example
-
-```typescript
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import { Router } from '@asterflow/router'
-
-// Create an AsterFlow instance with the desired adapter
-const app = new AsterFlow({ 
-  driver: adapters.node // or adapters.bun, adapters.express, adapters.fastify
-})
-
-// Define your routes
-const router = new Router({
-  path: '/hello',
-  methods: {
-    get({ response }) {
-      return response.send('Hello World!')
-    }
-  }
-})
-
-// Register routes
-app.controller(router)
-
-// Start the server
-app.listen({ port: 3000 })
-```
-
-### Available Adapters
-
-#### Node.js HTTP Server
-
-```typescript
+```ts
 import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 
-const app = new AsterFlow({
-  driver: adapters.node
-})
+const app = new AsterFlow({ driver: adapters.bun }) // or adapters.node, adapters.express, adapters.fastify
 
 app.listen({ port: 3000 })
 ```
 
-#### Bun
+Express and Fastify need their own instance passed through `listen`, since AsterFlow mounts a catch-all route on it rather than starting its own server:
 
-```typescript
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-
-const app = new AsterFlow({
-  driver: adapters.bun
-})
-
-app.listen({ port: 3000 })
-```
-
-#### Express
-
-```typescript
+```ts
 import { AsterFlow } from 'asterflow'
 import { adapters } from '@asterflow/adapter'
 import express from 'express'
 
-const expressApp = express()
-const app = new AsterFlow({
-  driver: adapters.express
-})
+const app = new AsterFlow({ driver: adapters.express })
 
-// Use Express middleware
-expressApp.use(express.json())
-
-app.listen(expressApp, 3000)
-```
-
-#### Fastify
-
-```typescript
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import fastify from 'fastify'
-
-const server = fastify()
-const app = new AsterFlow({
-  driver: adapters.fastify
-})
-
-app.listen(server, { port: 3000 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('Server listening!')
-})
-```
-
-## 🔧 Architecture
-
-### Adapter System
-
-The package uses an adapter system that implements the `Adapter` interface:
-
-```typescript
-class Adapter<Type extends Runtime> {
-  readonly runtime: Type
-  readonly listen: OptionsDriver<Type>['listen']
-  onRequest?: (request: Request, response: Response) => Promise<Response> | Response
-}
-```
-
-Each adapter implements:
-- Runtime-specific server initialization
-- Request conversion to AsterFlow format
-- Standardized error handling
-- Integration with the routing system
-
-### Error Handling
-
-The system includes robust error handling that:
-- Standardizes error responses
-- Provides stack traces in development environment
-- Logs errors for diagnostics
-- Maintains security by not exposing sensitive details in production
-
-```typescript
-interface ErrorPayload {
-  statusCode: number
-  error: string
-  message: string
-  details?: unknown
-}
+app.listen(express(), 3000)
 ```
 
 ## 🔗 Related Packages
 
-- [asterflow](https://www.npmjs.com/package/asterflow) - Core framework
-- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system
-- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system
-- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system
-- [@asterflow/plugin](https://www.npmjs.com/package/@asterflow/plugin) - A modular and typed plugin system
+- [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - supplies the `create*Request` factories each adapter calls to build a typed `Request` from the runtime's native one
+- [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - `AsterResponse` is what `onRequest` must return; adapters convert it to the runtime's native response and use it to build fallback/error responses
+- Depended on by [asterflow](https://www.npmjs.com/package/asterflow) - the core framework picks a `driver` from `adapters`, sets its `onRequest`, and delegates `app.listen(...)` to `driver.listen(...)`
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+This project is licensed under the [MIT License](../../LICENSE).

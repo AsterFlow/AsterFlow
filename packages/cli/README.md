@@ -2,66 +2,51 @@
 
 # @asterflow/cli
 
+![license-info](https://img.shields.io/github/license/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
+![stars-info](https://img.shields.io/github/stars/AsterFlow/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
+![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=packages%2Fcli&style=for-the-badge&colorA=302D41&colorB=b4befe)
+
+![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/cli?style=for-the-badge&colorA=302D41&colorB=3ac97b)
+
 </div>
 
-> Scaffolding and plugin management CLI for AsterFlow projects.
+> CLI for scaffolding AsterFlow projects, adding plugins, and generating the static fs-routing manifest.
 
 ## 📦 Installation
 
 ```bash
-npm install -g @asterflow/cli
-# or run without installing
-npx @asterflow/cli init
+bunx @asterflow/cli init my-app
 ```
 
-## 🚀 Usage
+### ✨ Features
 
-### `asterflow init [directory]`
+- **Full project scaffolding**: `init` writes `package.json`, `tsconfig.json`, `.gitignore`, an app entry for the chosen adapter (Bun, Node, Express or Fastify), and example route files - interactively or entirely via flags.
+- **Non-interactive by default when it needs to be**: any `--flag`, CI, or `--yes` skips prompting and fills in documented defaults instead, so agents and CI never hang waiting on input.
+- **Empty-directory check**: refuses to scaffold into a non-empty directory (ignoring things like `.git`/`.gitignore`/an IDE folder).
+- **Plugin management**: `add` merges plugins into an existing project's `package.json`, installs them with the detected package manager, and prints the `.use(...)` snippet to wire each one up.
+- **Route templates**: `hello` (a minimal `GET /`) and `upload` (a file upload via `@asterflow/multipart`, only offered when the `multipart` plugin is selected).
+- **Static route manifest generation**: `generate` calls `@asterflow/fs`'s `generateRouteManifest` to turn a `routes/` directory into a manifest of static imports, with a `--watch` mode to regenerate on change.
 
-Interactively scaffolds a new AsterFlow project: project name, adapter (Bun, Node, Express or Fastify), plugins to install, which example routes to scaffold, whether to initialize a git repository, and whether to install dependencies right away. Checks the target directory is empty (or only has files like `.git`/`.gitignore`/an IDE folder) before writing anything.
+## ❓ How to Use
+
+Scaffold a new project - interactively, or fully via flags for CI/agents:
 
 ```bash
-npx @asterflow/cli init my-app
+bunx @asterflow/cli init my-app --adapter bun --plugins fs,multipart --routes hello,upload --yes
 ```
 
-Every prompt has an equivalent flag (`--name`, `--adapter`, `--plugins fs,multipart`, `--routes hello,upload`/`--routes none`, `--install`/`--no-install`, `--git`/`--no-git`, `--use-npm`/`--use-pnpm`/`--use-yarn`/`--use-bun`). Passing any flag skips prompting for the rest and uses documented defaults instead - pass `--yes` to always skip prompts entirely:
+Manage an existing project with the other commands:
 
 ```bash
-npx @asterflow/cli init my-app --adapter bun --plugins fs,multipart --routes hello,upload --yes
-```
-
-Route templates: `hello` (`/`) and `upload` (`/upload`, only offered when `multipart` is among the selected plugins). Each maps to a file under `src/routes/`, following `@asterflow/fs`'s folder-based routing.
-
-### `asterflow add <names>`
-
-Adds one or more plugins to an existing project (comma-separated), merging them into `package.json`, installing them with the detected package manager, and printing the `.use(...)` snippet needed to wire each one up.
-
-```bash
-npx @asterflow/cli add fs,multipart
-```
-
-### `asterflow list`
-
-Prints the available plugins.
-
-```bash
-npx @asterflow/cli list
-```
-
-### `asterflow generate [directory]`
-
-Generates the static route manifest consumed by `@asterflow/fs` (fs-routing) - scans a routes directory and writes a file with a static import per route, so bundlers can see them (`asterflow init` already wires this into `predev`/`prebuild` for projects that pick the `fs` plugin).
-
-```bash
-npx @asterflow/cli generate            # scans src/routes, writes src/routes.gen.ts
-npx @asterflow/cli generate --watch    # regenerate on every change
+asterflow add fs,multipart   # add plugins to package.json, install them, print .use(...) wiring
+asterflow list                # print available plugins
+asterflow generate --watch    # regenerate src/routes.gen.ts whenever src/routes/ changes
 ```
 
 ## 🔗 Related Packages
 
-- [asterflow](https://www.npmjs.com/package/asterflow) - The core of the AsterFlow framework.
-- [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - The type-safe routing system.
+- [@asterflow/fs](https://www.npmjs.com/package/@asterflow/fs) - its `generateRouteManifest` powers the `generate` command.
 
 ## 📄 License
 
-MIT - See the main project [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+This project is licensed under the [MIT License](../../LICENSE).

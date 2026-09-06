@@ -4,148 +4,63 @@
 
 ![license-info](https://img.shields.io/github/license/AsterFlow/AsterFlow?style=for-the-badge&colorA=302D41&colorB=f9e2af&logoColor=f9e2af)
 ![stars-info](https://img.shields.io/github/stars/AsterFlow/AsterFlow?colorA=302D41&colorB=f9e2af&style=for-the-badge)
-![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=packages%2Fresponse&style=for-the-badge&colorA=302D41&colorB=b4befe)
+![last-commit](https://img.shields.io/github/last-commit/AsterFlow/AsterFlow?path=packages%2Fplugin&style=for-the-badge&colorA=302D41&colorB=b4befe)
 
 ![bundle-size](https://img.shields.io/bundlejs/size/@asterflow/plugin?style=for-the-badge&colorA=302D41&colorB=3ac97b)
 
 </div>
 
-> A modular and typed plugin system for extending AsterFlow functionality.
+> The plugin-authoring system used to build AsterFlow plugins - a typed builder for context, config and lifecycle hooks.
 
 ## 📦 Installation
 
 ```bash
-npm install @asterflow/plugin
-# or
 bun install @asterflow/plugin
 ```
 
-## 💡 About
+### ✨ Features
 
-`@asterflow/plugin` provides a robust and typed system for extending AsterFlow's functionality. It allows developers to create modular plugins that can inject context, manipulate configurations, and react to application lifecycle events, ensuring seamless and type-safe integration.
+- **Fluent builder:** chain `.config()`, `.decorate()`, `.derive()`, `.extends()` and `.on()` off a single `Plugin.create({ name })` call.
+- **Typed config with defaults:** `.config()` sets the plugin's default config and infers its shape.
+- **Static and derived context:** `.decorate()` injects a fixed value; `.derive()` computes a value from the config and context already built, lazily, when the plugin is registered.
+- **Instance extensions:** `.extends()` adds new properties/methods to the AsterFlow instance, computed from the app and the plugin's context.
+- **Lifecycle hooks:** `.on()` registers handlers for `beforeInitialize`, `afterInitialize`, `onRequest` and `onResponse`.
+- **Type inference end-to-end:** every chained call narrows a single `Props` type, so config, context and extensions stay typed without manual generics.
 
-## ✨ Features
+## ❓ How to Use
 
--   **Extensible Plugin System:** Create modular plugins to add custom functionalities to AsterFlow.
--   **Dynamic Context:** Inject static values into the plugin's context (`decorate`) or derive complex properties based on configuration and existing context (`derive`).
--   **Lifecycle Hooks:** Register handlers for specific AsterFlow application events (such as `beforeInitialize`, `afterInitialize`, `onRequest`, and `onResponse`) to extend behavior at different stages.
--   **Typed Configuration:** Define the plugin's configuration structure and its default values, with automatic type inference.
--   **Type Safety:** Full TypeScript support to ensure your plugin's context, configuration, and hooks are type-safe.
--   **Runtime Optimization:** Hooks are efficiently invoked only when the plugin is registered, allowing for performance optimizations.
+Build a plugin with `Plugin.create`, then chain the pieces it needs. This one adds a config option and exposes a method on the AsterFlow instance:
 
-## 🚀 Usage
-
-`@asterflow/plugin` enables the creation of plugins that extend `AsterFlow` in a modular and type-safe manner. Below are examples of how to create and use plugins.
-
-### Creating a Basic Plugin
-
-```typescript
+```ts
 import { Plugin } from '@asterflow/plugin'
 
-const myPlugin = Plugin.create({ name: 'my-first-plugin' })
-  .decorate('appName', 'My AsterFlow Application') // Adds a static value to the plugin's context
-  .on('beforeInitialize', (app, context) => {
-    console.log(`Initializing ${context.appName}...`)
-    // app is the AsterFlow instance
-  })
-  .on('afterInitialize', (app, context) => {
-    console.log(`${context.appName} has been initialized!`)
-  })
-
-// This plugin can now be registered with `app.use(myPlugin)`
+export const fsRoutingPlugin = Plugin.create({ name: 'fs-routing' })
+  .config({ routes: [] as unknown[] })
+  .extends((instance, context) => ({
+    registerRoutes() {
+      for (const route of context.routes) instance.controller(route)
+    }
+  }))
+  .on('beforeInitialize', (instance, context) => instance.registerRoutes())
 ```
 
-### Using Configuration and Derivation
+`.decorate()` and `.derive()` build up the plugin's context the same way - `decorate` for a static value, `derive` for one computed from config/context:
 
-Plugins can be configured and can derive values based on their configuration or existing context.
-
-```typescript
-import { Plugin } from '@asterflow/plugin'
-
-interface FeaturePluginConfig {
-  featureEnabled: boolean;
-  featureName: string;
-}
-
-const featureTogglePlugin = Plugin.create({ name: 'feature-toggle' })
-  .withConfig<FeaturePluginConfig>({
-    featureEnabled: true,
-    featureName: 'Awesome Feature'
-  })
-  .derive('statusMessage', (context) => {
-    return context.featureEnabled
-      ? `${context.featureName} is enabled.`
-      : `${context.featureName} is disabled.`
-  })
-  .on('beforeInitialize', (app, context) => {
-    console.log(context.statusMessage) // "Awesome Feature is enabled."
-  })
-
-// This plugin can be configured when registered:
-// app.use(featureTogglePlugin, { featureEnabled: false })
+```ts
+const withGreeting = Plugin.create({ name: 'greeting' })
+  .decorate('appName', 'My App')
+  .derive('greeting', (context) => `Hello, ${context.appName}!`)
+  .on('afterInitialize', (_app, context) => console.log(context.greeting))
 ```
 
-### Lifecycle Hooks
-
-Hooks allow plugins to react to important events in the `AsterFlow` lifecycle.
-
-```typescript
-import { Plugin } from '@asterflow/plugin'
-import { Request } from '@asterflow/request'
-import { Response } from '@asterflow/response'
-
-const loggerPlugin = Plugin.create({ name: 'logger-plugin' })
-  .on('onRequest', (request, response, context) => {
-    // Logs request details
-    console.log(`[REQ] ${request.getMethod()} ${request.getPathname()}`)
-  })
-  .on('onResponse', (request, response, context) => {
-    // Logs response details
-    console.log(`[RES] ${response.getStatus()} ${request.getPathname()}`)
-  })
-
-// Register this plugin for global logging
-// app.use(loggerPlugin)
-```
-
-### Integrating with AsterFlow
-
-To use the created plugins, you register them with the `AsterFlow` instance.
-
-```typescript
-import { AsterFlow } from 'asterflow'
-import { adapters } from '@asterflow/adapter'
-import fastify from 'fastify'
-// Import your plugins here
-// import { myPlugin, featureTogglePlugin, loggerPlugin } from './your-plugins'
-
-const server = fastify()
-const app = new AsterFlow({
-  driver: adapters.fastify
-})
-
-// Example plugin registration
-app.use(myPlugin) // No additional configuration
-app.use(featureTogglePlugin, { featureEnabled: false }) // With overridden configuration
-app.use(loggerPlugin)
-
-app.listen(server, { port: 3000 }, (err) => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-  console.log('AsterFlow server with plugins listening on port 3000!')
-})
-```
+The finished plugin is registered on an app with `app.use(fsRoutingPlugin, { routes: [...] })`.
 
 ## 🔗 Related Packages
 
--   [asterflow](https://www.npmjs.com/package/asterflow) - The heart of the AsterFlow framework.
--   [@asterflow/adapter](https://www.npmjs.com/package/@asterflow/adapter) - HTTP adapters for different runtimes.
--   [@asterflow/router](https://www.npmjs.com/package/@asterflow/router) - Type-safe routing system.
--   [@asterflow/request](https://www.npmjs.com/package/@asterflow/request) - Unified HTTP request system.
--   [@asterflow/response](https://www.npmjs.com/package/@asterflow/response) - Type-safe HTTP response system.
+- Depended on by [asterflow](https://www.npmjs.com/package/asterflow) - the core framework consumes plugin instances and their types to power `app.use()`.
+- Depended on by [@asterflow/multipart](https://www.npmjs.com/package/@asterflow/multipart) - built as a plugin with `Plugin.create()`.
+- Depended on by `@asterflow/fs` - built as a plugin with `Plugin.create()`.
 
 ## 📄 License
 
-MIT - See [LICENSE](https://github.com/AsterFlow/AsterFlow/blob/main/LICENSE) for more details.
+This project is licensed under the [MIT License](../../LICENSE).
