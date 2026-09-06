@@ -82,48 +82,32 @@ class Publisher {
       let packages: string[]
       
       if (packageName) {
-        // Check both core and packages/* / plugins/* for the requested name
-        const candidates = [
-          `packages/${packageName}/`,
-          `plugins/${packageName}/`,
-          'core/' // allow "core" or "asterflow"
-        ]
-        // Also handle npm names like @asterflow/fs -> folder fs
+        // Match by folder basename (`fs`, `router`), full npm name (`@asterflow/fs`), or the
+        // `core`/`asterflow` alias - not by re-deriving a path from the name, since a folder's
+        // basename doesn't always equal its npm name (e.g. plugins/fs is `@asterflow/fs`).
+        const all = await glob(['packages/*/', 'plugins/*/', 'core'])
         const folderName = packageName.includes('/') ? packageName.split('/').pop() : packageName
-        if (folderName && folderName !== packageName) {
-          candidates.unshift(`plugins/${folderName}/`, `packages/${folderName}/`)
-        }
 
         let matched: string | undefined
-        for (const cand of candidates) {
-          if (existsSync(join(cand, 'package.json'))) {
-            // Verify name matches if possible, but accept folder match
-            if (cand === `packages/${packageName}/` || cand === `packages/${folderName}/` || packageName === 'core' || packageName === 'asterflow') {
+        for (const cand of all) {
+          if (cand.split('/').pop() === packageName || cand.split('/').pop() === folderName) {
+            matched = cand
+            break
+          }
+          try {
+            const pkg = JSON.parse(await readFile(join(cand, 'package.json'), 'utf-8'))
+            if (pkg.name === packageName) {
               matched = cand
               break
             }
-            // Fallback check by reading name
-            try {
-              const content = await readFile(join(cand, 'package.json'), 'utf-8')
-              const pkg = JSON.parse(content)
-              if (pkg.name === packageName) {
-                matched = cand
-                break
-              }
-            } catch {}
-          }
+          } catch {}
+        }
+        if (!matched && (packageName === 'core' || packageName === 'asterflow')) {
+          matched = 'core'
         }
 
         if (!matched) {
-          // Try glob fallback for exact folder
-          const all = await glob(['packages/*/', 'plugins/*/', 'core'])
-          const found = all.find(p => p.includes(`/${folderName}/`) || p.includes(`/${packageName}/`) || p === `${packageName}/`)
-          if (found) matched = found
-        }
-
-        if (!matched || !existsSync(matched)) {
           console.error(`\x1b[31mError:\x1b[0m Package '${packageName}' not found`)
-          const all = await glob(['packages/*/', 'plugins/*/', 'core'])
           console.error(`Available: ${all.join(', ')}`)
           process.exit(1)
         }
