@@ -305,7 +305,15 @@ class ESBuildBuilder {
           build.onLoad({ filter: /\.tsx?$/ }, async (args) => {
             const contents = await readFile(args.path, 'utf8')
             const relativePath = relative(process.cwd(), args.path).replace(/\\/g, '/')
-            const newContents = `// ${relativePath}\n${contents}`
+            const sourceComment = `// ${relativePath}\n`
+
+            // A shebang is only recognized by esbuild (and Node) on the file's
+            // very first line - prepending the comment ahead of it would push
+            // `#!...` to line 2 and turn it into a syntax error. Keep it first.
+            const newContents = contents.startsWith('#!')
+              ? contents.replace(/^(#!.*\n)/, `$1${sourceComment}`)
+              : sourceComment + contents
+
             return { contents: newContents, loader: args.path.endsWith('.tsx') ? 'tsx' : 'ts' }
           })
         }
@@ -349,6 +357,15 @@ class ESBuildBuilder {
         console.log(`${this.CLI} Copying asset: ${asset}`)
         await cp(sourceFull, `publish/${targetDir}/${asset}`)
       }
+    }
+
+    // Static, non-code assets a package's runtime code reads back (e.g. `@asterflow/cli`'s
+    // scaffold templates) - copied as-is, one level up from `dist/`, so a package can resolve
+    // them relative to its own root regardless of whether its bundle is cjs or mjs.
+    const templatesDir = join(sourcePath, 'templates')
+    if (existsSync(templatesDir)) {
+      console.log(`${this.CLI} Copying asset: templates/`)
+      await cp(templatesDir, `publish/${targetDir}/templates`, { recursive: true })
     }
   }
 }
@@ -433,7 +450,7 @@ class LocalPacker {
 
       await rename(sourceTgzPath, targetTgzPath)
 
-      console.log(`  ✅ Packed successfully!`)
+      console.log('  ✅ Packed successfully!')
       console.log(`  📂 File created: \x1b[32m${targetTgzPath}\x1b[0m`)
       console.log(`  💡 To install, run: \x1b[36mbun add ${targetTgzPath}\x1b[0m`)
     } catch (error) {
@@ -508,7 +525,7 @@ class Builder {
       if (!ok) hasWorkspaceLeak = true
     }
     if (hasWorkspaceLeak) {
-      console.error(`\x1b[31mBuild failed: workspace: protocol leaked into publish manifests\x1b[0m`)
+      console.error('\x1b[31mBuild failed: workspace: protocol leaked into publish manifests\x1b[0m')
       process.exit(1)
     }
 
