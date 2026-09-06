@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/plugin",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "The plugin-authoring system used to build AsterFlow plugins - a typed builder for context, config and lifecycle hooks.",
   "keywords": [
     "asterflow",
