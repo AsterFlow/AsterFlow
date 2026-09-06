@@ -42,13 +42,27 @@ I also toyed with a pseudo-framework called [Kython](https://github.com/AsterFlo
 | `@asterflow/request` | Unified HTTP request adapter system |
 | `@asterflow/response` | Type-safe HTTP response system with status helpers and runtime compatibility |
 | `@asterflow/router` | Type-safe routing system with middleware and validation support |
+| `@asterflow/cli` | Scaffolding and plugin management CLI (`asterflow init`, `add`, `list`, `generate`) |
 
 ## Installation
 
+AsterFlow is split across several `@asterflow/*` packages (adapter, router, response, plugins, ...) that need to be installed and wired together consistently, so `npm install asterflow` alone isn't enough - use the CLI to scaffold a project instead. It picks an adapter, optional plugins (file-system routing, multipart uploads), and installs the right dependencies for you:
+
 ```bash
-# You can use any package manager - npm, pnpm, bun, etc.
-npm install asterflow
+npx @asterflow/cli init my-app
+# or: bunx @asterflow/cli init my-app / pnpm dlx @asterflow/cli init my-app
+
+cd my-app
+npm run dev
 ```
+
+Every prompt has a matching flag for non-interactive use (CI, scripts, agents):
+
+```bash
+npx @asterflow/cli init my-app --adapter bun --plugins fs --yes
+```
+
+See [`@asterflow/cli`'s README](packages/cli/README.md) for the full command reference (`init`, `add`, `list`, `generate`).
 
 ### ✨ Features
 
