@@ -1,4 +1,5 @@
 import { Method, RouteMethodBuilder } from '@asterflow/router'
+import type { AnyMethod, AnyRouteMethodBuilder } from '@asterflow/router'
 import type { MultipartFields } from '../types/multipart'
 
 let installed = false
@@ -15,14 +16,14 @@ export function installExtension(): true {
   installed = true
 
   Method.prototype.multipart = function (
-    this: Method<any, any, any, any, any, any, any, any, any, any>,
+    this: AnyMethod,
     schema: MultipartFields
   ) {
     return this.extend({}, { multipart: schema })
   }
 
   RouteMethodBuilder.prototype.multipart = function (
-    this: RouteMethodBuilder<any, any, any, any, any, any>,
+    this: AnyRouteMethodBuilder,
     schema: MultipartFields
   ) {
     return this.extend({}, { multipart: schema })

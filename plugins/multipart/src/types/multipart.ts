@@ -1,4 +1,3 @@
-import type { MethodKeys } from '@asterflow/router'
 import type { MimeType } from './mime'
 
 /** Per-field upload criteria declared on a route's `multipart` option. */
@@ -17,8 +16,6 @@ export interface MultipartFieldCriteria {
 
 /** A route's full multipart schema: field name -> criteria. */
 export type MultipartFields = Record<string, MultipartFieldCriteria>
-/** A router's multipart schema, keyed per HTTP method. */
-export type MultipartFieldsDynamic<M extends MethodKeys = MethodKeys> = { [K in M]?: MultipartFields }
 
 /**
  * Limits enforced by busboy while parsing a multipart request.

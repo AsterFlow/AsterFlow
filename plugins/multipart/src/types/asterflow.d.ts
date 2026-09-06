@@ -1,14 +1,10 @@
-import type { Runtime } from '@asterflow/adapter'
 import type {
-  AnySchema,
-  Middleware,
-  MethodHandler,
-  MethodKeys,
-  MiddlewareOutput,
-  SchemaDynamic
+  DefaultMethodProps,
+  DefaultRouteMethodBuilderProps,
+  MergeProps,
+  MethodProps,
+  RouteMethodBuilderProps
 } from '@asterflow/router'
-import type { Responders } from '@asterflow/response'
-import type { AnyAsterflow } from 'asterflow'
 import type { InferMultipartRequestFragment } from './inferRequest'
 import type { MultipartFields, MultipartFile, MultipartResult } from './multipart'
 
@@ -48,33 +44,18 @@ declare module '@asterflow/request' {
  */
 declare module '@asterflow/router' {
   interface Method<
-    Responder extends Responders,
-    Path extends string = string,
-    Drive extends Runtime = Runtime,
-    MethodKey extends MethodKeys = MethodKeys,
-    Schema extends AnySchema = AnySchema,
-    Middlewares extends readonly Middleware<Responder, Schema, string, Record<string, unknown>>[] = [],
-    Context extends MiddlewareOutput<Middlewares> = MiddlewareOutput<Middlewares>,
-    Instance extends AnyAsterflow = AnyAsterflow,
-    RequestExt extends Record<string, unknown> = {},
-    Handler extends MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt> | undefined
-      = MethodHandler<Path, Drive, Responder, Schema, Middlewares, Context, Instance, RequestExt>,
+    Props extends MethodProps = DefaultMethodProps
   > {
     multipart<Fields extends MultipartFields>(
       schema: Fields
-    ): Method<Responder, Path, Drive, MethodKey, Schema, Middlewares, Context, Instance, RequestExt & InferMultipartRequestFragment<Fields>, Handler extends undefined ? undefined : any>
+    ): Method<MergeProps<Props, { requestExt: Props['requestExt'] & InferMultipartRequestFragment<Fields>, handler: Props['handler'] extends undefined ? undefined : any }>>
   }
 
   interface RouteMethodBuilder<
-    Responder extends Responders,
-    Path extends string,
-    MethodKey extends MethodKeys,
-    Schema extends SchemaDynamic<MethodKey>,
-    Context,
-    RequestExt extends Record<string, unknown> = {},
+    Props extends RouteMethodBuilderProps = DefaultRouteMethodBuilderProps
   > {
     multipart<Fields extends MultipartFields>(
       schema: Fields
-    ): RouteMethodBuilder<Responder, Path, MethodKey, Schema, Context, RequestExt & InferMultipartRequestFragment<Fields>>
+    ): RouteMethodBuilder<MergeProps<Props, { requestExt: Props['requestExt'] & InferMultipartRequestFragment<Fields> }>>
   }
 }
