@@ -1,6 +1,6 @@
 {
   "name": "asterflow",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "The core framework - ties together adapters, routing, plugins and responses into one typed AsterFlow app.",
   "keywords": [
     "asterflow",

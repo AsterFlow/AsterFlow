@@ -1,6 +1,6 @@
 {
   "name": "@asterflow/response",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Type-safe HTTP response builder with status-code helpers, header/cookie management, and binary file responses.",
   "keywords": [
     "asterflow",
