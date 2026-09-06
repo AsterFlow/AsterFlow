@@ -65,9 +65,7 @@ class Publisher {
 
       // --provenance needs GitHub Actions' OIDC token (`id-token: write`) and fails outside a
       // supported CI environment, so it's opt-in based on where this is actually running.
-      // Also opt-out-able via NPM_NO_PROVENANCE: registries can 404 the publish PUT when a
-      // granular access token is combined with --provenance (observed against npmjs.com).
-      const provenance = process.env.GITHUB_ACTIONS === 'true' && process.env.NPM_NO_PROVENANCE !== 'true' ? ' --provenance' : ''
+      const provenance = process.env.GITHUB_ACTIONS === 'true' ? ' --provenance' : ''
       await execAsync(`npm publish --access public${provenance}`, {
         cwd: publishDir
       })

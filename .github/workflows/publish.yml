@@ -41,6 +41,9 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Update npm (OIDC trusted publishing needs a recent npm CLI)
+        run: npm install -g npm@latest
+
       - name: Stub out gitignored local-only workspaces
         # `example/` and `benchmark/` are listed in the root package.json's
         # `workspaces` array for local dev, but both are gitignored - a fresh
@@ -65,11 +68,9 @@ jobs:
         run: bun run typecheck
 
       - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # npmjs.com 404s the publish PUT when a granular access token is combined with
-          # --provenance (observed directly against this repo's token) - see publish.ts.
-          NPM_NO_PROVENANCE: 'true'
+        # OIDC Trusted Publishing (see docs/npm-trusted-publisher-setup.md) - no token needed.
+        # npm exchanges this job's id-token for short-lived registry credentials automatically,
+        # scoped to this exact repo/workflow/environment.
         run: bun run publish --package "${{ inputs.package }}" --bump "${{ inputs.bump }}"
 
       - name: Commit version bump and tag the release
